@@ -17,9 +17,9 @@
 
 import { readFile, stat } from 'node:fs/promises';
 import { basename } from 'node:path';
-import { loadEnvConfig } from '@next/env';
+import nextEnv from '@next/env';
 
-loadEnvConfig(process.cwd());
+nextEnv.loadEnvConfig(process.cwd());
 
 const API = process.env.FREECONVERT_API_BASE_URL || 'https://api.freeconvert.com/v1';
 const KEY = process.env.FREECONVERT_API_KEY;

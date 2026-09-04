@@ -1,5 +1,6 @@
 import { sendEmail } from "@/actions/resend";
 import { siteConfig } from "@/config/site";
+import { grantSignupCredits } from "@/lib/compress/signup-grant";
 import MagicLinkEmail from '@/emails/magic-link-email';
 import OTPCodeEmail from '@/emails/otp-code-email';
 import { UserWelcomeEmail } from "@/emails/user-welcome";
@@ -126,6 +127,9 @@ export const auth = betterAuth({
     user: {
       create: {
         after: async (createdUser) => {
+          // Seed the credit ledger so the first compression works right away.
+          await grantSignupCredits(createdUser.id);
+
           const cookieStore = await cookies();
 
           // Only track user source if enabled via environment variable

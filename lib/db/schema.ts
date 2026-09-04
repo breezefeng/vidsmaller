@@ -58,6 +58,9 @@ export const session = pgTable("session", {
 export const account = pgTable("account", {
   id: uuid('id').primaryKey().defaultRandom(),
   userId: uuid('user_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
+  // better-auth >= 1.7 scopes account identity by issuer, not just providerId.
+  // https://better-auth.com/docs/guides/1-7-upgrade-guide#account-identity-is-scoped-by-issuer
+  issuer: text('issuer').notNull().default('credential'),
   accountId: text('account_id').notNull(),
   providerId: text('provider_id').notNull(),
   accessToken: text('access_token'),
@@ -72,6 +75,13 @@ export const account = pgTable("account", {
     .defaultNow()
     .$onUpdate(() => new Date())
     .notNull(),
+}, (table) => {
+  return {
+    issuerAccountIdUnique: unique('account_issuer_account_id_unique').on(
+      table.issuer,
+      table.accountId
+    ),
+  }
 });
 
 export const verification = pgTable("verification", {

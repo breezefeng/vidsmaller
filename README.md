@@ -48,8 +48,10 @@ cross-origin POST. If `R2_*` is configured, the client detects the failure,
 PUTs to a presigned R2 URL instead, and the job is recreated with `import/url`.
 The staged object is deleted as soon as the job settles.
 
-Run `pnpm test:freeconvert ./some.mp4` — it reports whether the upload host
-sends CORS headers, which tells you if you need the fallback at all.
+**Verified 2026-09-04:** the upload host responds with
+`Access-Control-Allow-Origin: *`, so direct browser upload works and the R2
+fallback is genuinely optional. Re-check any time with
+`pnpm test:freeconvert ./some.mp4`.
 
 ---
 
@@ -89,32 +91,42 @@ pnpm db:seed        # seed the pricing plans
 
 Or point `DATABASE_URL` at Supabase / Neon.
 
-### 3. FreeConvert (required)
+### 3. FreeConvert — done
 
-1. Sign up at <https://www.freeconvert.com/pricing> — the API needs a paid plan
-   (from $12.99/mo for 1,500 conversion minutes).
-2. Create an API key: <https://www.freeconvert.com/account/api>
-3. Add a webhook pointing at `https://vidsmaller.com/api/webhooks/freeconvert`
-   and copy its signing secret: <https://www.freeconvert.com/account/webhooks>
+API key `vidsmaller-prod` and a live webhook are already provisioned on the
+account; both values are in `.env.local`.
 
-```env
-FREECONVERT_API_KEY=...
-FREECONVERT_WEBHOOK_SECRET=...
-```
+- Keys: <https://www.freeconvert.com/account/api-tokens>
+- Webhook: <https://www.freeconvert.com/account/webhooks> →
+  `https://vidsmaller.com/api/webhooks/freeconvert` (job.created / success / failed)
 
-Verify end to end:
+The account is still on the **Free** plan (20 conversion minutes total), which
+is enough to develop against. Upgrade before launch:
+<https://www.freeconvert.com/pricing> — from $12.99/mo for 1,500 minutes.
+
+Verify end to end at any time:
 
 ```bash
 pnpm test:freeconvert ./sample.mp4
 ```
 
-### 4. Auth
+### 4. Auth — done
+
+Google Cloud project `vidsmaller` (org `breezeszfeng-org`) is configured:
+
+- OAuth client "VidSmaller Web" — origins `localhost:3000`, `vidsmaller.com`,
+  `www.vidsmaller.com`; redirects `<origin>/api/auth/callback/google`
+- Consent screen: External, non-sensitive scopes only
+  (`openid`, `userinfo.email`, `userinfo.profile`) → no Google review needed
+- Publishing status is still **Testing**. To go live: verify `vidsmaller.com`
+  in Search Console, then hit "发布应用" on the Audience page.
+
+Still to add:
 
 ```env
-BETTER_AUTH_SECRET=          # openssl rand -base64 32
-NEXT_PUBLIC_GOOGLE_CLIENT_ID=
-GOOGLE_CLIENT_SECRET=
 RESEND_API_KEY=              # magic links / OTP emails
+NEXT_PUBLIC_GITHUB_CLIENT_ID=
+GITHUB_CLIENT_SECRET=
 ```
 
 ### 5. Payments
@@ -188,11 +200,22 @@ app/api/webhooks/freeconvert/route.ts    HMAC-verified job events
 components/compress/                     dropzone, settings, queue UI
 ```
 
+## Verified working
+
+- [x] Google sign-in end to end (real account row + session)
+- [x] 62.8 MB 1080p clip -> 28.5 MB (-54.6%) through the full browser flow
+- [x] Direct browser -> FreeConvert upload (CORS confirmed `*`)
+- [x] Credit charge (1 credit for 20s of H.264) and balance decrement
+- [x] Streamed download proxy with correct `Content-Disposition`
+
 ## TODO before launch
 
-- [ ] Buy a FreeConvert API plan and fill in the two env vars
+- [ ] Upgrade the FreeConvert plan (20 free minutes will run out fast)
 - [ ] Create Stripe products, update `pricing-config.ts`, set `PLAN_TIER_MAP`
+- [ ] Verify `vidsmaller.com` in Search Console, then publish the OAuth app
+- [ ] Add `RESEND_API_KEY` so magic-link / OTP sign-in works
 - [ ] Replace `public/logo.png` / favicon with real branding
 - [ ] Set up Upstash Redis (anonymous rate limiting is a no-op without it)
+- [ ] Monthly cron calling `refreshFreeCredits` (lib/compress/signup-grant.ts)
 - [ ] Programmatic SEO landing pages (`/compress-mp4`, `/compress-for-discord`, …)
 - [ ] Decide on the desktop app angle — videocompress.ai ships an Electron build
