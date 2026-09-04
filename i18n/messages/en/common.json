@@ -1,0 +1,321 @@
+{
+  "Home": {
+    "title": "VidSmaller",
+    "tagLine": "Compress video online — free, fast, no watermark",
+    "description": "VidSmaller shrinks MP4, MOV, MKV and 20+ other video formats by up to 90% in the cloud. No install, no watermark, no quality cliff."
+  },
+  "Login": {
+    "title": "Welcome back",
+    "description": "Sign in with the following methods",
+    "Toast": {
+      "rateLimitTitle": "Too many requests",
+      "rateLimitDescription": "Please wait a moment before trying again.",
+      "Email": {
+        "successTitle": "Magic link sent!",
+        "successDescription": "Please check your email for the login link.",
+        "errorTitle": "Error",
+        "errorDescription": "Failed to send magic link. Please try again."
+      },
+      "OTP": {
+        "errorTitle": "Error",
+        "sendSuccessTitle": "Code sent!",
+        "sendSuccessDescription": "Please check your email for the verification code.",
+        "sendErrorDescription": "Failed to send verification code. Please try again.",
+        "verifySuccessTitle": "Success!",
+        "verifySuccessDescription": "You have been signed in successfully.",
+        "verifyErrorDescription": "Invalid or expired verification code. Please try again."
+      },
+      "Google": {
+        "errorTitle": "Error",
+        "errorDescription": "Failed to sign in with Google. Please try again."
+      },
+      "Github": {
+        "errorTitle": "Error",
+        "errorDescription": "Failed to sign in with Github. Please try again."
+      }
+    },
+    "signInMethods": {
+      "or": "Or continue with",
+      "signInWithGoogle": "Continue with Google",
+      "signInWithGithub": "Continue with Github",
+      "signInWithEmail": "Continue with Email",
+      "otpMethod": "Verification Code",
+      "magicLinkMethod": "Magic Link",
+      "sendOTP": "Send Code",
+      "verifyOTP": "Verify Code",
+      "resendOTP": "Didn't receive the code? Resend",
+      "backToEmail": "Back",
+      "otpSentTo": "We sent a verification code to"
+    },
+    "Button": {
+      "signIn": "Sign In",
+      "signOut": "Sign Out"
+    },
+    "UserMenus": [
+      {
+        "name": "Settings",
+        "href": "/dashboard/settings",
+        "icon": "Settings"
+      },
+      {
+        "name": "My Orders",
+        "href": "/dashboard/my-orders",
+        "icon": "ShoppingCart"
+      },
+      {
+        "name": "Subscription",
+        "href": "/dashboard/subscription",
+        "icon": "WalletCards"
+      },
+      {
+        "name": "Credit History",
+        "href": "/dashboard/credit-history",
+        "icon": "Coins"
+      }
+    ],
+    "AdminMenus": [
+      {
+        "name": "Overview",
+        "href": "/dashboard/overview",
+        "icon": "LayoutDashboard"
+      },
+      {
+        "name": "Users",
+        "href": "/dashboard/users",
+        "icon": "Users"
+      },
+      {
+        "name": "Orders",
+        "href": "/dashboard/orders",
+        "icon": "ShoppingCart"
+      },
+      {
+        "name": "Prices",
+        "href": "/dashboard/prices",
+        "icon": "DollarSign"
+      },
+      {
+        "name": "Blogs",
+        "href": "/dashboard/blogs",
+        "icon": "Rss"
+      },
+      {
+        "name": "Glossary",
+        "href": "/dashboard/glossary",
+        "icon": "BookOpen"
+      },
+      {
+        "name": "R2 Files",
+        "href": "/dashboard/r2-resources",
+        "icon": "FileBox"
+      }
+    ]
+  },
+  "Blogs": {
+    "title": "Blog Posts",
+    "description": "Insights on Next.js ecosystem and NEXTY.DEV template updates.",
+    "emptyState": {
+      "title": "No blog posts",
+      "description": "We are creating exciting content, please stay tuned!"
+    },
+    "loadMorePostsFailed": "Failed to load more posts",
+    "loadMorePosts": "Loading more posts...",
+    "filterPostsFailed": "Failed to load posts",
+    "noPostsFoundForThisTag": "No posts found with this tag",
+    "reachedTheEnd": "You've reached the end of all posts",
+    "BlogDetail": {
+      "featured": "Featured Post",
+      "viewCount": "{count} views",
+      "accessRestricted": "Access Restricted",
+      "unauthorized": "This article is only available to logged-in users",
+      "premium": "Premium Content",
+      "premiumContent": "This article is exclusive to subscribers",
+      "signIn": "Sign In",
+      "upgrade": "Upgrade",
+      "backToBlogs": "Back to Blog List",
+      "notFound": "Article Not Found"
+    }
+  },
+  "About": {
+    "title": "About",
+    "description": "About the site"
+  },
+  "ErrorPage": {
+    "403": {
+      "title": "403 - Access Denied",
+      "description": "You don't have permission to access this page.",
+      "button": {
+        "name": "Back to homepage",
+        "href": "/"
+      }
+    },
+    "RedirectError": {
+      "title": "Redirect Error",
+      "description": "An error occurred during the authentication process.",
+      "goToHome": "Go to Home",
+      "goToLogin": "Go to Login",
+      "invalid_params": {
+        "title": "Invalid Parameters",
+        "description": "Required parameters are missing in the request."
+      },
+      "invalid_redirect": {
+        "title": "Invalid Redirect URL",
+        "description": "The redirect URL provided is not allowed."
+      },
+      "token_expired": {
+        "title": "Token Expired",
+        "description": "Your verification token has expired. Please try logging in again."
+      },
+      "invalid_token": {
+        "title": "Invalid Token",
+        "description": "The verification token provided is invalid."
+      },
+      "invalid_link_or_expired": {
+        "title": "Invalid or Expired Link",
+        "description": "The email verification link is invalid or has expired."
+      },
+      "server_error": {
+        "title": "Server Error",
+        "description": "An unexpected error occurred on the server during authentication."
+      },
+      "unknown": {
+        "title": "Authentication Error",
+        "description": "An unknown error occurred during the authentication process."
+      }
+    },
+    "StripeError": {
+      "title": "Payment Portal Error",
+      "description": "An error occurred with your payment information.",
+      "goToHome": "Go to Home",
+      "goToDashboard": "Go to Dashboard"
+    }
+  },
+  "LanguageDetection": {
+    "title": "Language Suggestion",
+    "description": "We noticed your browser language differs from the current site language. You can switch languages anytime.",
+    "countdown": "Closing in {countdown} seconds",
+    "switchTo": "Switch to"
+  },
+  "Header": {
+    "links": [
+      {
+        "name": "Features",
+        "href": "/#features"
+      },
+      {
+        "id": "pricing",
+        "name": "Pricing",
+        "href": "/#pricing"
+      },
+      {
+        "name": "How it works",
+        "href": "/#use-cases"
+      },
+      {
+        "name": "FAQ",
+        "href": "/#faq"
+      },
+      {
+        "name": "Blog",
+        "href": "/blog"
+      }
+    ]
+  },
+  "Footer": {
+    "Copyright": "Copyright © {year} {name} All rights reserved.",
+    "About": "About",
+    "PrivacyPolicy": "Privacy Policy",
+    "TermsOfService": "Terms of Service",
+    "RefundPolicy": "Refund Policy",
+    "Newsletter": {
+      "title": "Subscribe to our newsletter",
+      "description": "Stay up to date with our latest news.",
+      "subscribe": {
+        "invalidEmail": "Please enter a valid email address",
+        "defaultErrorMessage": "Subscription failed. Please try again later",
+        "successMessage": "Successfully subscribed!",
+        "multipleSubmissions": "Too many requests. Please try again tomorrow"
+      },
+      "unsubscribe": {
+        "title": "Newsletter Unsubscription",
+        "success": "You have successfully unsubscribed from VidSmaller emails.",
+        "emailPrefix": "Email:",
+        "regretMessage": "You can resubscribe anytime to receive the latest VidSmaller updates.",
+        "errorGeneric": "An error occurred while processing your unsubscribe request",
+        "errorNoToken": "No unsubscribe token provided",
+        "errorMessage": "Please make sure you're using the correct unsubscribe link. If the problem persists, contact our support team for assistance.",
+        "contactPrefix": "Contact us at:",
+        "contactPrefixSuccess": "If you have any questions, feel free to contact us at:",
+        "backToHome": "Back to Home",
+        "invalidEmail": "Invalid email address",
+        "notInNewsletter": "This email is not in our subscription list",
+        "confirmTitle": "Confirm Unsubscription",
+        "confirmMessage": "Are you sure you want to unsubscribe from our newsletter? You won't receive updates about new features and content anymore.",
+        "confirmButton": "Yes, Unsubscribe",
+        "cancelButton": "Cancel",
+        "processing": "Processing...",
+        "finalWarning": "This action cannot be undone. You can always resubscribe later.",
+        "errorInvalidToken": "Invalid unsubscribe link. The link may be corrupted or expired."
+      }
+    },
+    "Links": {
+      "groups": [
+        {
+          "title": "Product",
+          "links": [
+            {
+              "href": "/#features",
+              "name": "Features"
+            },
+            {
+              "id": "pricing",
+              "href": "/#pricing",
+              "name": "Pricing"
+            },
+            {
+              "href": "/#faq",
+              "name": "FAQ"
+            }
+          ]
+        },
+        {
+          "title": "Resources",
+          "links": [
+            {
+              "href": "/blog",
+              "name": "Blog"
+            },
+            {
+              "href": "/glossary",
+              "name": "Glossary"
+            },
+            {
+              "href": "/about",
+              "name": "About"
+            }
+          ]
+        },
+        {
+          "title": "Languages",
+          "links": [
+            {
+              "href": "/en",
+              "name": "English",
+              "useA": true
+            },
+            {
+              "href": "/zh",
+              "name": "中文",
+              "useA": true
+            },
+            {
+              "href": "/ja",
+              "name": "日本語",
+              "useA": true
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

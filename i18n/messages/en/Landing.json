@@ -1,0 +1,162 @@
+{
+  "Hero": {
+    "badge": {
+      "label": "FREE",
+      "text": "No watermark, no sign-up to try",
+      "href": "/#pricing"
+    },
+    "title": "Make any video smaller — without making it look worse",
+    "description": "Drop in an MP4, MOV, MKV or 20+ other formats and VidSmaller shrinks it by up to 90% in the cloud. No software to install, no watermark, no quality cliff.",
+    "getStarted": "Compress a video",
+    "getStartedLink": "/#compress",
+    "trust": {
+      "noWatermark": "Never adds a watermark",
+      "fast": "Cloud encoding, no CPU melt",
+      "private": "Auto-deleted after processing"
+    }
+  },
+  "Features": {
+    "badge": {
+      "label": "FEATURES",
+      "text": "Built for people who just need a smaller file"
+    },
+    "title": "Everything you need to shrink a video",
+    "description": "Five compression modes, twenty-plus input formats and a queue that keeps running while you get on with your day.",
+    "items": [
+      {
+        "title": "Hit an exact file size",
+        "description": "Need it under 25 MB for email, 10 MB for Discord, or 16 MB for WhatsApp? Type the number and we encode to fit it.",
+        "details": [
+          {
+            "title": "Target size mode",
+            "description": "Two-pass bitrate targeting so the output lands where you asked, not 3× over."
+          },
+          {
+            "title": "Presets for the usual suspects",
+            "description": "Light, Balanced, Strong and Extreme cover 90% of jobs in one click."
+          },
+          {
+            "title": "Or take full control",
+            "description": "CRF, resolution and max-bitrate modes are one tab away when you want them."
+          }
+        ]
+      },
+      {
+        "title": "Quality you can actually ship",
+        "description": "Modern H.264 and H.265 encoders with sane defaults, so a 70% smaller file still looks like the original on a phone screen.",
+        "details": [
+          {
+            "title": "H.265 / HEVC",
+            "description": "Roughly 30% smaller than H.264 at matching quality, on paid plans."
+          },
+          {
+            "title": "Never a watermark",
+            "description": "Free or paid, your video comes back clean."
+          },
+          {
+            "title": "Old-device mode",
+            "description": "One switch for baseline profile and yuv420p when the file has to play everywhere."
+          }
+        ]
+      },
+      {
+        "title": "Your laptop stays cool",
+        "description": "Encoding happens on our servers, not your machine. Close the tab, come back later, the file is still waiting.",
+        "details": [
+          {
+            "title": "Nothing to install",
+            "description": "Works in any modern browser, on any OS, including Chromebooks and iPads."
+          },
+          {
+            "title": "Batch queue",
+            "description": "Line up several clips and let them run while you do something else."
+          },
+          {
+            "title": "Files auto-expire",
+            "description": "Uploads and results are deleted automatically. We never keep your footage."
+          }
+        ]
+      }
+    ]
+  },
+  "UseCases": {
+    "badge": {
+      "label": "USE CASES",
+      "text": "One tool, a lot of size limits"
+    },
+    "title": "Where a smaller video actually matters",
+    "description": "Every platform has a cap. VidSmaller gets you under it without re-editing anything.",
+    "cases": [
+      {
+        "title": "Email & messaging",
+        "description": "Gmail stops at 25 MB, WhatsApp at 16 MB, Discord at 10 MB on the free tier. Set a target size and send it in one go.",
+        "icon": "Mail"
+      },
+      {
+        "title": "Social & short-form",
+        "description": "Get long recordings under TikTok, Instagram and X upload limits while keeping the frame sharp enough for mobile.",
+        "icon": "Share2"
+      },
+      {
+        "title": "Websites & landing pages",
+        "description": "A 200 MB hero video kills your Core Web Vitals. Ship a 12 MB version that still looks premium.",
+        "icon": "Globe"
+      },
+      {
+        "title": "Storage & archives",
+        "description": "Screen recordings, drone footage and phone clips pile up fast. Bulk-compress and reclaim your drive.",
+        "icon": "HardDrive"
+      }
+    ]
+  },
+  "FAQ": {
+    "title": "Questions people actually ask",
+    "description": "If something is still unclear, email us — a human replies.",
+    "items": [
+      {
+        "question": "Does VidSmaller add a watermark?",
+        "answer": "No. Not on the free tier, not anywhere. Your compressed file is identical to the original apart from the encoding."
+      },
+      {
+        "question": "How much smaller will my video get?",
+        "answer": "It depends on the source. Phone and screen recordings are usually badly encoded and routinely drop 70–90%. Footage that is already tightly compressed may only shrink 20–40%. The Balanced preset targets roughly half the original size."
+      },
+      {
+        "question": "Do I need to create an account?",
+        "answer": "Not to try it. Signed-out visitors get a couple of free compressions per day with a 200 MB file limit. Signing in raises that to 1 GB and unlocks the batch queue."
+      },
+      {
+        "question": "What happens to my files?",
+        "answer": "Your video is uploaded straight to the encoding service, processed, and deleted automatically once the retention window ends — two hours for anonymous jobs. We never train on, share or resell your footage."
+      },
+      {
+        "question": "Which formats can I upload?",
+        "answer": "MP4, MOV, MKV, AVI, WebM, FLV, WMV, M4V, MPEG, 3GP, TS, MTS, VOB and more — 20+ containers in total. You can also change the output container to MP4, MKV, WebM or MOV."
+      },
+      {
+        "question": "How long does it take?",
+        "answer": "Most clips under five minutes finish in under a minute. Longer files and slower encoder settings take proportionally more time; you can close the tab and come back."
+      },
+      {
+        "question": "What is a credit?",
+        "answer": "One credit compresses one minute of video with H.264. H.265 costs two credits per minute because it takes more machine time. If a job fails, the credits go straight back to your balance."
+      },
+      {
+        "question": "Can I compress a 4K or 10 GB file?",
+        "answer": "Yes, on the higher plans. Free accounts cap out at 1 GB per file, Pro at 5 GB and Max at 10 GB."
+      }
+    ]
+  },
+  "CTA": {
+    "title": "Stop fighting upload limits",
+    "description": "Compress your first video right now — no account, no watermark, no install.",
+    "button": "See plans",
+    "trustText": "Why people keep it bookmarked",
+    "features": {
+      "deploy": "⚡ Cloud-fast",
+      "production": "🚫 No watermark",
+      "updates": "🔒 Auto-deleted",
+      "i18n": "🎬 20+ formats"
+    }
+  }
+}

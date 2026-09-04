@@ -1,0 +1,24 @@
+# Local development database.
+#   docker compose up -d
+#   pnpm db:push
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: vidsmaller-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: vidsmaller
+      POSTGRES_PASSWORD: vidsmaller
+      POSTGRES_DB: vidsmaller
+    ports:
+      - "5433:5432"
+    volumes:
+      - vidsmaller-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U vidsmaller -d vidsmaller"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  vidsmaller-pgdata:

@@ -1,0 +1,162 @@
+{
+  "Hero": {
+    "badge": {
+      "label": "免费",
+      "text": "无水印，不注册也能用",
+      "href": "/#pricing"
+    },
+    "title": "把视频压小，但看起来还是原来那样",
+    "description": "拖进 MP4、MOV、MKV 等 20 多种格式，VidSmaller 在云端最高帮你压掉 90% 体积。不用装软件，不加水印，画质不塌。",
+    "getStarted": "开始压缩",
+    "getStartedLink": "/#compress",
+    "trust": {
+      "noWatermark": "永不添加水印",
+      "fast": "云端编码，不占本机 CPU",
+      "private": "处理完自动删除"
+    }
+  },
+  "Features": {
+    "badge": {
+      "label": "功能",
+      "text": "只为「我就想要个小一点的文件」而做"
+    },
+    "title": "压缩视频需要的一切",
+    "description": "五种压缩模式、二十多种输入格式，还有一个你关掉网页也照跑的队列。",
+    "items": [
+      {
+        "title": "精确压到指定大小",
+        "description": "邮箱要 25 MB 以内？Discord 要 10 MB？WhatsApp 要 16 MB？直接填数字，我们按这个体积编码。",
+        "details": [
+          {
+            "title": "目标体积模式",
+            "description": "按目标码率编码，输出落在你要的体积上，不会超出三倍。"
+          },
+          {
+            "title": "常用场景预设",
+            "description": "轻度 / 均衡 / 强力 / 极限，一次点击覆盖九成需求。"
+          },
+          {
+            "title": "也能完全手动",
+            "description": "CRF、分辨率、最大码率三种模式就在旁边的标签页里。"
+          }
+        ]
+      },
+      {
+        "title": "压完还能直接交付的画质",
+        "description": "H.264 与 H.265 编码器 + 合理默认值，体积砍掉 70%，在手机上看依然和原片没差。",
+        "details": [
+          {
+            "title": "H.265 / HEVC",
+            "description": "同画质下比 H.264 再小约 30%，付费套餐可用。"
+          },
+          {
+            "title": "绝不加水印",
+            "description": "免费还是付费，拿回来的都是干净的视频。"
+          },
+          {
+            "title": "老设备兼容模式",
+            "description": "一个开关切到 baseline + yuv420p，哪台机器都能播。"
+          }
+        ]
+      },
+      {
+        "title": "你的笔记本不用发烫",
+        "description": "编码跑在我们的服务器上，不占你的机器。关掉标签页去忙别的，回来文件还在。",
+        "details": [
+          {
+            "title": "无需安装",
+            "description": "任意现代浏览器、任意系统都能用，Chromebook 和 iPad 也行。"
+          },
+          {
+            "title": "批量队列",
+            "description": "一次排好几个片子，让它自己跑。"
+          },
+          {
+            "title": "文件自动过期",
+            "description": "上传件和结果都会自动删除，我们不留你的素材。"
+          }
+        ]
+      }
+    ]
+  },
+  "UseCases": {
+    "badge": {
+      "label": "使用场景",
+      "text": "一个工具，应付各种体积上限"
+    },
+    "title": "什么时候真的需要更小的视频",
+    "description": "每个平台都有上限。VidSmaller 让你不用重新剪辑就能过线。",
+    "cases": [
+      {
+        "title": "邮件与即时通讯",
+        "description": "Gmail 卡 25 MB，WhatsApp 卡 16 MB，Discord 免费版卡 10 MB。设个目标体积，一次发出去。",
+        "icon": "Mail"
+      },
+      {
+        "title": "社交与短视频",
+        "description": "把长录屏压进抖音、Instagram、X 的上传限制，同时保证手机上看依然清晰。",
+        "icon": "Share2"
+      },
+      {
+        "title": "官网与落地页",
+        "description": "200 MB 的首屏视频会毁掉你的 Core Web Vitals。换成 12 MB 的版本，观感照样高级。",
+        "icon": "Globe"
+      },
+      {
+        "title": "存储与归档",
+        "description": "录屏、航拍、手机片段攒得飞快。批量压一遍，把硬盘拿回来。",
+        "icon": "HardDrive"
+      }
+    ]
+  },
+  "FAQ": {
+    "title": "大家真正会问的问题",
+    "description": "还有不清楚的，发邮件给我们，是真人回复。",
+    "items": [
+      {
+        "question": "VidSmaller 会加水印吗？",
+        "answer": "不会。免费版也不会。压缩后的文件除了编码不同，和原片完全一致。"
+      },
+      {
+        "question": "能压多小？",
+        "answer": "取决于源文件。手机拍摄和录屏通常编码很浪费，普遍能减 70%–90%；本来就压得很狠的素材可能只减 20%–40%。「均衡」预设的目标大约是原体积的一半。"
+      },
+      {
+        "question": "必须注册吗？",
+        "answer": "试用不需要。未登录访客每天有几次免费压缩，单文件上限 200 MB。登录后提升到 1 GB，并解锁批量队列。"
+      },
+      {
+        "question": "我的文件会怎么处理？",
+        "answer": "视频直接上传到编码服务，处理完在保留期结束后自动删除——匿名任务是两小时。我们不会拿你的素材训练、分享或转售。"
+      },
+      {
+        "question": "支持哪些格式？",
+        "answer": "MP4、MOV、MKV、AVI、WebM、FLV、WMV、M4V、MPEG、3GP、TS、MTS、VOB 等 20 多种容器。输出容器也可以选 MP4、MKV、WebM 或 MOV。"
+      },
+      {
+        "question": "要等多久？",
+        "answer": "五分钟以内的片子大多一分钟内完成。更长的文件、更慢的编码档位会按比例增加时间；你可以关掉页面稍后再来。"
+      },
+      {
+        "question": "什么是积分（credit）？",
+        "answer": "1 积分 = 用 H.264 压 1 分钟视频。H.265 因为更耗机时，是每分钟 2 积分。任务失败的话积分会原样退回余额。"
+      },
+      {
+        "question": "能压 4K 或者 10 GB 的文件吗？",
+        "answer": "高档套餐可以。免费账号单文件上限 1 GB，Pro 是 5 GB，Max 是 10 GB。"
+      }
+    ]
+  },
+  "CTA": {
+    "title": "别再跟上传限制较劲了",
+    "description": "现在就压第一个视频——不用注册、没有水印、不用安装。",
+    "button": "查看套餐",
+    "trustText": "为什么大家会把它收藏起来",
+    "features": {
+      "deploy": "⚡ 云端速度",
+      "production": "🚫 无水印",
+      "updates": "🔒 自动删除",
+      "i18n": "🎬 20+ 格式"
+    }
+  }
+}

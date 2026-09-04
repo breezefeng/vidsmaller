@@ -1,0 +1,224 @@
+'use client';
+
+import FileItem from '@/components/compress/FileItem';
+import SettingsPanel from '@/components/compress/SettingsPanel';
+import { useCompressor } from '@/components/compress/useCompressor';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible';
+import { Separator } from '@/components/ui/separator';
+import { Link as I18nLink } from '@/i18n/routing';
+import { formatBytes } from '@/lib/compress/client';
+import { cn } from '@/lib/utils';
+import {
+  AlertCircle,
+  ChevronDown,
+  Coins,
+  Settings2,
+  Sparkles,
+  Trash2,
+  UploadCloud,
+  Zap,
+} from 'lucide-react';
+import { useCallback, useState } from 'react';
+import { useDropzone } from 'react-dropzone';
+
+export default function Compressor() {
+  const {
+    items,
+    settings,
+    setSettings,
+    context,
+    globalError,
+    addFiles,
+    removeItem,
+    clearAll,
+    startAll,
+    retryItem,
+    stats,
+  } = useCompressor();
+
+  const [settingsOpen, setSettingsOpen] = useState(false);
+
+  const onDrop = useCallback(
+    (accepted: File[]) => {
+      void addFiles(accepted);
+    },
+    [addFiles]
+  );
+
+  const { getRootProps, getInputProps, isDragActive, open } = useDropzone({
+    onDrop,
+    noClick: true,
+    noKeyboard: true,
+    accept: { 'video/*': [] },
+    multiple: (context?.limits.maxBatchFiles ?? 1) > 1,
+  });
+
+  const maxSize = context?.limits.maxFileSize ?? 200 * 1024 * 1024;
+
+  return (
+    <div className="mx-auto w-full max-w-3xl">
+      <div
+        {...getRootProps()}
+        className={cn(
+          'relative rounded-2xl border-2 border-dashed bg-card/60 p-8 backdrop-blur transition-all sm:p-12',
+          isDragActive
+            ? 'border-primary bg-primary/5 scale-[1.01]'
+            : 'border-border hover:border-primary/50'
+        )}
+      >
+        <input {...getInputProps()} />
+
+        <div className="flex flex-col items-center gap-4 text-center">
+          <div className="rounded-2xl bg-primary/10 p-4">
+            <UploadCloud className="h-8 w-8 text-primary" />
+          </div>
+
+          <div>
+            <p className="text-lg font-semibold">
+              {isDragActive ? 'Drop your video here' : 'Drop a video, or choose a file'}
+            </p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              MP4 · MOV · MKV · AVI · WebM and 20+ more · up to{' '}
+              {formatBytes(maxSize)}
+            </p>
+          </div>
+
+          <Button size="lg" onClick={open} className="h-11 rounded-xl px-8">
+            <Sparkles className="mr-2 h-4 w-4" />
+            Choose video
+          </Button>
+
+          <p className="text-xs text-muted-foreground">
+            No watermark · files are processed in the cloud and auto-deleted
+          </p>
+        </div>
+      </div>
+
+      {/* status bar */}
+      <div className="mt-3 flex flex-wrap items-center justify-between gap-2 px-1 text-xs text-muted-foreground">
+        <div className="flex items-center gap-3">
+          {context?.signedIn ? (
+            <span className="flex items-center gap-1">
+              <Coins className="h-3.5 w-3.5" />
+              {context.credits} credits
+            </span>
+          ) : (
+            <span className="flex items-center gap-1">
+              <Zap className="h-3.5 w-3.5" />
+              Free trial · no sign-up needed
+            </span>
+          )}
+          {context?.tier && (
+            <Badge variant="outline" className="text-[10px] uppercase">
+              {context.tier}
+            </Badge>
+          )}
+        </div>
+
+        {!context?.signedIn && (
+          <I18nLink href="/login" className="underline hover:text-foreground">
+            Sign in for 1&nbsp;GB files &amp; batch mode
+          </I18nLink>
+        )}
+      </div>
+
+      {globalError && (
+        <Alert variant="destructive" className="mt-4">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>{globalError}</AlertDescription>
+        </Alert>
+      )}
+
+      {/* settings */}
+      <Collapsible
+        open={settingsOpen}
+        onOpenChange={setSettingsOpen}
+        className="mt-4 rounded-xl border bg-card"
+      >
+        <CollapsibleTrigger asChild>
+          <button className="flex w-full items-center justify-between p-4 text-left">
+            <span className="flex items-center gap-2 text-sm font-medium">
+              <Settings2 className="h-4 w-4" />
+              Compression settings
+              <Badge variant="secondary" className="ml-1 text-[10px]">
+                {settings.mode === 'preset'
+                  ? settings.preset
+                  : settings.mode.replace('_', ' ')}
+              </Badge>
+            </span>
+            <ChevronDown
+              className={cn(
+                'h-4 w-4 transition-transform',
+                settingsOpen && 'rotate-180'
+              )}
+            />
+          </button>
+        </CollapsibleTrigger>
+        <CollapsibleContent>
+          <Separator />
+          <div className="p-4">
+            <SettingsPanel
+              settings={settings}
+              onChange={setSettings}
+              context={context}
+              disabled={stats.busy}
+            />
+          </div>
+        </CollapsibleContent>
+      </Collapsible>
+
+      {/* queue */}
+      {items.length > 0 && (
+        <div className="mt-4 space-y-3">
+          {items.map((item) => (
+            <FileItem
+              key={item.key}
+              item={item}
+              onRemove={removeItem}
+              onRetry={retryItem}
+            />
+          ))}
+
+          <div className="flex flex-wrap items-center gap-3 pt-1">
+            <Button
+              size="lg"
+              className="h-11 flex-1 rounded-xl sm:flex-none sm:px-10"
+              disabled={!stats.hasPending || stats.busy}
+              onClick={startAll}
+            >
+              <Zap className="mr-2 h-4 w-4" />
+              {stats.busy ? 'Working…' : 'Compress now'}
+            </Button>
+
+            <Button
+              variant="ghost"
+              size="lg"
+              className="h-11"
+              onClick={clearAll}
+              disabled={stats.busy}
+            >
+              <Trash2 className="mr-2 h-4 w-4" />
+              Clear
+            </Button>
+
+            {stats.done > 0 && stats.savedBytes > 0 && (
+              <div className="ml-auto text-sm">
+                <span className="text-muted-foreground">Saved </span>
+                <span className="font-semibold text-emerald-600">
+                  {formatBytes(stats.savedBytes)} (−{stats.savedPercent}%)
+                </span>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
