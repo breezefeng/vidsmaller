@@ -1,5 +1,7 @@
 # VidSmaller
 
+**Live: <https://vidsmaller.com>**
+
 Cloud video compression — Next.js 16 + Tailwind, full stack in one repo.
 
 The compression itself is done by the [FreeConvert API](https://www.freeconvert.com/api/v1/);
@@ -89,7 +91,23 @@ pnpm db:push        # create tables
 pnpm db:seed        # seed the pricing plans
 ```
 
-Or point `DATABASE_URL` at Supabase / Neon.
+**Production** is Supabase project `vidsmaller` (`twzvincfksdupxicwozb`, us-east-1),
+sitting in the same region as Vercel's default `iad1` functions.
+
+Use the **transaction pooler on 6543** — Supabase's free tier no longer exposes
+IPv4 for direct connections, and `lib/db/config.ts` already sets `prepare: false`
+on Vercel, which is exactly what pgbouncer transaction mode requires:
+
+```
+postgresql://postgres.twzvincfksdupxicwozb:<pw>@aws-0-us-east-1.pooler.supabase.com:6543/postgres
+```
+
+The Data API is deliberately **disabled** on that project. We talk to Postgres
+directly through Drizzle and never use supabase-js, so leaving the auto-generated
+REST API on would only expose `user`, `account`, `session` and friends for free.
+
+To migrate production, point `DATABASE_URL` at the pooler and run
+`pnpm db:push && pnpm db:seed`.
 
 ### 3. FreeConvert — done
 
@@ -118,8 +136,8 @@ Google Cloud project `vidsmaller` (org `breezeszfeng-org`) is configured:
   `www.vidsmaller.com`; redirects `<origin>/api/auth/callback/google`
 - Consent screen: External, non-sensitive scopes only
   (`openid`, `userinfo.email`, `userinfo.profile`) → no Google review needed
-- Publishing status is still **Testing**. To go live: verify `vidsmaller.com`
-  in Search Console, then hit "发布应用" on the Audience page.
+- Publishing status: **In production**. Any Google account can sign in; no
+  Google review was required because only non-sensitive scopes are requested.
 
 Still to add:
 
@@ -200,19 +218,20 @@ app/api/webhooks/freeconvert/route.ts    HMAC-verified job events
 components/compress/                     dropzone, settings, queue UI
 ```
 
-## Verified working
+## Verified in production (vidsmaller.com)
 
-- [x] Google sign-in end to end (real account row + session)
-- [x] 62.8 MB 1080p clip -> 28.5 MB (-54.6%) through the full browser flow
+- [x] Google sign-in, including One Tap
+- [x] Signup grant: new user received 30 credits
+- [x] Real compression: 52.4 MB -> 23.9 MB (-54.5%), 1 credit charged
 - [x] Direct browser -> FreeConvert upload (CORS confirmed `*`)
-- [x] Credit charge (1 credit for 20s of H.264) and balance decrement
-- [x] Streamed download proxy with correct `Content-Disposition`
+- [x] Pricing section reads live plans from Supabase
 
 ## TODO before launch
 
 - [ ] Upgrade the FreeConvert plan (20 free minutes will run out fast)
-- [ ] Create Stripe products, update `pricing-config.ts`, set `PLAN_TIER_MAP`
-- [ ] Verify `vidsmaller.com` in Search Console, then publish the OAuth app
+- [ ] Create Stripe products, paste the ids into `pricing-config.ts`, re-seed —
+      paid plans stay inactive in `live` until their ids are real — then set
+      `PLAN_TIER_MAP`
 - [ ] Add `RESEND_API_KEY` so magic-link / OTP sign-in works
 - [ ] Replace `public/logo.png` / favicon with real branding
 - [ ] Set up Upstash Redis (anonymous rate limiting is a no-op without it)
