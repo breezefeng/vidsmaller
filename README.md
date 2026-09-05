@@ -81,6 +81,44 @@ pnpm install
 cp .env.example .env.local
 ```
 
+### 1b. Where environment variables actually live
+
+**The local files are the source of truth. Vercel is a write-only projection of
+them.** Every production variable is stored on Vercel as `type: sensitive`, so
+`vercel env pull` and even `GET /v9/projects/:id/env?decrypt=true` return empty
+strings. Nothing you put there can ever be read back.
+
+| File | Role | In git? |
+| --- | --- | --- |
+| `.env.local` | 26 of the 28 production values, plus local-only dev toggles | no |
+| `.env.production.snapshot` | overlay: only the values that differ in production | no |
+| `.env.example` | key names, no values | yes |
+
+```bash
+pnpm env:check   # compare key sets local vs Vercel, flag drift (read-only)
+pnpm env:push    # push .env.local + overlay -> Vercel production
+```
+
+Both read `scripts/lib/env-source.mjs`. Values are sent over stdin (never argv,
+so they stay out of `ps`), and a push is refused outright if any value is empty,
+still holds a `<pw>` placeholder, or points at localhost. `env:push` also takes
+`--dry-run`.
+
+Six keys are deliberately never published: `VERCEL_OIDC_TOKEN` (minted per
+deployment) and five `NEXT_PUBLIC_*` dev toggles whose production behaviour is
+the code default.
+
+Env changes only affect **new** builds — redeploy after pushing.
+
+The boilerplate's `env:sync` / `env:clear` scripts (push every secret to GitHub
+Actions) were removed: this repo has no `.github/workflows/`, so nothing consumed
+them, and keeping a one-command path to publish live Stripe and Resend keys was
+more risk than it was worth. Recover them from git history if CI ever lands.
+
+Both files are untracked and exist only on one machine. `.env.local` is the
+recovery point for the whole production environment; back it up somewhere real
+(password manager, encrypted archive), not just on this laptop.
+
 ### 2. Database
 
 Local Postgres via Docker:
