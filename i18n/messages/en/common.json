@@ -80,6 +80,11 @@
         "icon": "LayoutDashboard"
       },
       {
+        "name": "Compressions",
+        "href": "/dashboard/compressions",
+        "icon": "FileVideo"
+      },
+      {
         "name": "Users",
         "href": "/dashboard/users",
         "icon": "Users"

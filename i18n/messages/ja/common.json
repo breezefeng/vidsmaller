@@ -80,6 +80,11 @@
         "icon": "LayoutDashboard"
       },
       {
+        "name": "圧縮ジョブ",
+        "href": "/dashboard/compressions",
+        "icon": "FileVideo"
+      },
+      {
         "name": "ユーザー管理",
         "href": "/dashboard/users",
         "icon": "Users"
