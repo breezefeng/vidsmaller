@@ -147,19 +147,38 @@ NEXT_PUBLIC_GITHUB_CLIENT_ID=
 GITHUB_CLIENT_SECRET=
 ```
 
-### 5. Payments
+### 5. Payments — done
 
-Create the products in Stripe, then paste the ids into
-`lib/db/seed/pricing-config.ts`, duplicate each plan with `environment: 'live'`,
-and run `pnpm db:seed` again.
+Live Stripe products (account is HK, prices are USD):
 
-Finally map plan ids to compressor tiers:
+| Product | Monthly | Yearly |
+| --- | --- | --- |
+| VidSmaller Pro | $9 | $90 |
+| VidSmaller Max | $29 | $290 |
+| VidSmaller 500 Credits | — | $12 one-time |
 
-```env
-PLAN_TIER_MAP=<pro-plan-uuid>:pro,<max-plan-uuid>:max
-```
+Webhook endpoint `https://vidsmaller.com/api/stripe/webhook` is registered for
+the eight events `app/api/stripe/webhook/route.ts` actually handles.
 
-### 6. Run
+`PLAN_TIER_MAP` maps plan uuids to compressor tiers and is already set for both
+the `test` and `live` rows.
+
+### 6. Email — needs DNS
+
+`RESEND_API_KEY` is set and `vidsmaller.com` is registered with Resend, but the
+domain is **unverified** until these three records exist. Until then no
+magic-link or OTP mail can be delivered, and `ADMIN_EMAIL`
+(`noreply@vidsmaller.com`) cannot send.
+
+| Type | Name | Value | Priority |
+| --- | --- | --- | --- |
+| TXT | `resend._domainkey` | `p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDoC0aY+buFKbb3LVVHYe7Vyw7T5jlTsffRzABc7uIKESlcbNlGGQMAcQrYnYJbHUFIbvXHew2mvqtiVnBlPLUyoGnmIsJRe4V37OMaae8MpprrQjs6B7TgyjXknCjauoAoP0LpkxgJ4oOcBqkYVRGHhckrMdg7Z+LzJ/exH4tBtwIDAQAB` | — |
+| MX | `send` | `feedback-smtp.us-east-1.amazonses.com` | 10 |
+| TXT | `send` | `v=spf1 include:amazonses.com ~all` | — |
+
+Then hit Verify in the Resend dashboard.
+
+### 7. Run
 
 ```bash
 pnpm dev
@@ -229,10 +248,10 @@ components/compress/                     dropzone, settings, queue UI
 ## TODO before launch
 
 - [ ] Upgrade the FreeConvert plan (20 free minutes will run out fast)
-- [ ] Create Stripe products, paste the ids into `pricing-config.ts`, re-seed —
-      paid plans stay inactive in `live` until their ids are real — then set
-      `PLAN_TIER_MAP`
-- [ ] Add `RESEND_API_KEY` so magic-link / OTP sign-in works
+- [ ] Publish the three Resend DNS records so email can actually send
+- [ ] Test a real checkout once before announcing anything
+- [ ] Set up Upstash Redis — without it the anonymous daily limit fails open,
+      which matters the moment FreeConvert minutes cost money
 - [ ] Replace `public/logo.png` / favicon with real branding
 - [ ] Set up Upstash Redis (anonymous rate limiting is a no-op without it)
 - [ ] Monthly cron calling `refreshFreeCredits` (lib/compress/signup-grant.ts)
