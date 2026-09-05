@@ -97,7 +97,7 @@ const fx = (description: string): PricingFeature => ({
 // Pricing Plans
 // ============================================================================
 
-export const pricingPlans: PricingPlanConfig[] = [
+const basePlans: PricingPlanConfig[] = [
   /* ------------------------------- FREE ------------------------------- */
   {
     id: '5b9f6cf0-4a3e-4a3f-9c9f-0f2a1d7b0001',
@@ -593,4 +593,42 @@ export const pricingPlans: PricingPlanConfig[] = [
     },
     benefitsJsonb: { oneTimeCredits: 500 } as PricingBenefits,
   },
+]
+
+/* ==========================================================================
+ * Environment expansion
+ * ==========================================================================
+ * The console filters plans by environment: `live` in production, `test`
+ * everywhere else. Rather than maintain two hand-edited copies that drift, we
+ * define each plan once above and emit both rows here.
+ *
+ * A paid plan whose payment id is still a placeholder is emitted as inactive,
+ * so production never renders a checkout button that is guaranteed to fail.
+ * Fill the real Stripe ids in above and re-run `pnpm db:seed` to light them up.
+ */
+
+const PLACEHOLDER = /^REPLACE_WITH_/
+
+function isConfigured(plan: PricingPlanConfig): boolean {
+  if (plan.provider === 'none') return true
+  const ids = [plan.stripePriceId, plan.creemProductId, plan.paypalPlanId]
+  const used = ids.filter(Boolean) as string[]
+  return used.length > 0 && !used.some((id) => PLACEHOLDER.test(id))
+}
+
+/** Deterministic sibling id so re-seeding updates rather than duplicates. */
+function liveId(testId: string): string {
+  const suffix = testId.slice(-12)
+  const bumped = suffix.replace(/^./, (c) => (c === 'f' ? '0' : 'f'))
+  return testId.slice(0, -12) + bumped
+}
+
+export const pricingPlans: PricingPlanConfig[] = [
+  ...basePlans,
+  ...basePlans.map((plan) => ({
+    ...plan,
+    id: liveId(plan.id as string),
+    environment: 'live' as const,
+    isActive: plan.isActive !== false && isConfigured(plan),
+  })),
 ]

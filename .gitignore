@@ -109,3 +109,6 @@ docker-compose.override.yml
 .yarn-integrity
 .node_repl_history
 .tern-port
+
+# Vercel CLI
+.vercel
