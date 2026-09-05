@@ -193,7 +193,7 @@ export const auth = betterAuth({
     })] : []),
     magicLink({
       sendMagicLink: async ({ email, url, token }) => {
-        await sendEmail({
+        const result = await sendEmail({
           email,
           subject: `Sign in to ${siteConfig.name}`,
           react: MagicLinkEmail,
@@ -201,6 +201,11 @@ export const auth = betterAuth({
             url
           }
         })
+        // Without this the endpoint answers 200 while nothing was delivered,
+        // and the user just stares at an empty inbox.
+        if (result && !result.success) {
+          throw new Error(result.error || 'Failed to send magic link email')
+        }
       },
       expiresIn: 60 * 5,
     }),
@@ -208,7 +213,7 @@ export const auth = betterAuth({
       otpLength: 6,
       expiresIn: 60 * 10, // 10 minutes
       sendVerificationOTP: async ({ email, otp, type }) => {
-        await sendEmail({
+        const result = await sendEmail({
           email,
           subject: `Your ${siteConfig.name} verification code: ${otp}`,
           react: OTPCodeEmail,
@@ -217,6 +222,9 @@ export const auth = betterAuth({
             type
           }
         })
+        if (result && !result.success) {
+          throw new Error(result.error || 'Failed to send verification code')
+        }
       },
     }),
     lastLoginMethod(),

@@ -76,9 +76,32 @@ export async function sendEmail({
       };
     }
 
-    await resend.emails.send(emailOptions);
+    const { error } = await resend.emails.send(emailOptions);
+
+    // Resend reports delivery problems in the response body rather than by
+    // throwing, so this branch is the one that actually catches bad senders,
+    // unverified domains and suppressed recipients.
+    if (error) {
+      console.error('Resend rejected the email:', {
+        to: email,
+        subject,
+        from,
+        error,
+      });
+      return actionResponse.error(
+        `Email provider rejected the message: ${error.message ?? 'unknown error'}`
+      );
+    }
+
+    return actionResponse.success({ sent: true });
   } catch (error) {
-    console.error('Failed to send email:', error);
+    // Swallowing this used to make a broken mail pipeline look healthy: the
+    // caller returned 200, nothing reached the inbox, and the only trace was a
+    // server log nobody reads. Surface it to the caller instead.
+    console.error('Failed to send email:', { to: email, subject, error });
+    return actionResponse.error(
+      error instanceof Error ? error.message : 'Failed to send email'
+    );
   }
 }
 
