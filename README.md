@@ -66,7 +66,7 @@ Reverse-engineered from their production bundle:
 | Frontend | Nuxt 3 (Vue), ~30 locales                                             | Next.js 16 (React), en / zh / ja                      |
 | Login    | Google One Tap (`accounts.google.com/gsi/client`) + email&nbsp;OTP, own JWT backend | better-auth: Google, GitHub, magic link, email OTP    |
 | Payment  | own `/api/billing/checkout` → hosted checkout in a popup, `/api/billing/portal` | Stripe / Creem / PayPal, all wired in the boilerplate |
-| Storage  | Alibaba OSS staging                                                    | none in the default path (see above)                  |
+| Storage  | Alibaba OSS staging                                                    | none for video; R2 for avatars / blog images          |
 | Logging  | Alibaba SLS (`us-west-1.log.aliyuncs.com`)                            | Pino + Sentry                                         |
 | Engine   | FreeConvert                                                            | FreeConvert                                           |
 
@@ -192,7 +192,34 @@ Without these vars `checkRateLimit` **fails open** — the anonymous daily cap
 silently stops existing. Verified in production: request 3 of 4 is rejected with
 "Free daily limit reached".
 
-### 8. Run
+### 8. Cloudflare R2 — done
+
+R2 is **not** in the video path (see "Why there is no S3 / R2 / OSS" above), but the
+user-avatar upload, the admin blog/glossary image picker and the optional
+`lib/compress/staging.ts` fallback all go through it. Without `R2_*` set, every
+avatar upload fails with "Failed to upload avatar" — and because the server
+action returns early, the Full Name change is silently dropped with it.
+
+| Var | Value |
+| --- | --- |
+| `R2_ACCOUNT_ID` | `807a23a72068c63cfd42b6a8a196013a` |
+| `R2_BUCKET_NAME` | `vidsmaller` (APAC, created Sep 5 2026) |
+| `R2_PUBLIC_URL` | `https://cdn.vidsmaller.com` |
+| `R2_ACCESS_KEY_ID` / `R2_SECRET_ACCESS_KEY` | account token `vidsmaller-app`, Object Read & Write, scoped to the `vidsmaller` bucket only |
+
+`cdn.vidsmaller.com` is an R2 **custom domain** (auto-created CNAME on the
+vidsmaller.com zone), not the rate-limited `*.r2.dev` URL, so objects are served
+and cached at the Cloudflare edge.
+
+Two gotchas:
+
+- `next.config.mjs` reads `R2_PUBLIC_URL` at **build** time to build
+  `images.remotePatterns`. Changing it requires a redeploy, not just an env update.
+- Enabling R2 requires a payment method on the Cloudflare account even though
+  the free tier (10 GB, 1M class-A, 10M class-B per month) covers this workload
+  many times over.
+
+### 9. Run
 
 ```bash
 pnpm dev
@@ -260,6 +287,7 @@ components/compress/                     dropzone, settings, queue UI
 - [x] Pricing section reads live plans from Supabase
 - [x] Live Stripe checkout session ($9 USD, correct live plan id in metadata)
 - [x] Anonymous rate limit enforced (2/day per IP)
+- [x] Avatar upload -> R2, served from `cdn.vidsmaller.com`
 
 ## TODO before launch
 
