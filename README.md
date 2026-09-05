@@ -178,7 +178,21 @@ magic-link or OTP mail can be delivered, and `ADMIN_EMAIL`
 
 Then hit Verify in the Resend dashboard.
 
-### 7. Run
+### 7. Rate limiting — done
+
+`UPSTASH_REDIS_REST_*` point at the **shared** `videocompress-waitlist` instance
+(`adapting-llama-169809`, us-east-1). The Upstash free tier allows only one
+database per account, and every key this app writes is namespaced under
+`vidsmaller:` via `LOWER_CASE_SITE_NAME`, so the two projects cannot collide.
+
+Quota is 500K commands/month against a handful of commands per compression, so
+sharing is comfortable for now. Split it out if either project gets busy.
+
+Without these vars `checkRateLimit` **fails open** — the anonymous daily cap
+silently stops existing. Verified in production: request 3 of 4 is rejected with
+"Free daily limit reached".
+
+### 8. Run
 
 ```bash
 pnpm dev
@@ -244,14 +258,15 @@ components/compress/                     dropzone, settings, queue UI
 - [x] Real compression: 52.4 MB -> 23.9 MB (-54.5%), 1 credit charged
 - [x] Direct browser -> FreeConvert upload (CORS confirmed `*`)
 - [x] Pricing section reads live plans from Supabase
+- [x] Live Stripe checkout session ($9 USD, correct live plan id in metadata)
+- [x] Anonymous rate limit enforced (2/day per IP)
 
 ## TODO before launch
 
 - [ ] Upgrade the FreeConvert plan (20 free minutes will run out fast)
 - [ ] Publish the three Resend DNS records so email can actually send
 - [ ] Test a real checkout once before announcing anything
-- [ ] Set up Upstash Redis — without it the anonymous daily limit fails open,
-      which matters the moment FreeConvert minutes cost money
+- [ ] Upgrade FreeConvert — this is now the only thing gating real traffic
 - [ ] Replace `public/logo.png` / favicon with real branding
 - [ ] Set up Upstash Redis (anonymous rate limiting is a no-op without it)
 - [ ] Monthly cron calling `refreshFreeCredits` (lib/compress/signup-grant.ts)
