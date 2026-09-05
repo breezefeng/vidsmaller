@@ -17,7 +17,8 @@ import { getErrorMessage } from '@/lib/error-utils';
 import { isRecurringPaymentType } from '@/lib/payments/provider-utils';
 import { stripe } from '@/lib/stripe';
 import { getURL } from '@/lib/url';
-import { eq, InferInsertModel } from 'drizzle-orm';
+import { pricingEnvironmentFilter } from '@/lib/pricing/environment';
+import { InferInsertModel, and, eq } from 'drizzle-orm';
 import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 import Stripe from 'stripe';
@@ -103,7 +104,7 @@ export async function createStripeCheckoutSession(params: {
       trialPeriodDays: pricingPlansSchema.trialPeriodDays,
     })
     .from(pricingPlansSchema)
-    .where(eq(pricingPlansSchema.stripePriceId, priceId))
+    .where(and(eq(pricingPlansSchema.stripePriceId, priceId), pricingEnvironmentFilter()))
     .limit(1);
 
   const plan = results[0];
@@ -307,7 +308,7 @@ export async function syncSubscriptionData(
       const planDataResults = await db
         .select({ id: pricingPlansSchema.id })
         .from(pricingPlansSchema)
-        .where(eq(pricingPlansSchema.stripePriceId, priceId))
+        .where(and(eq(pricingPlansSchema.stripePriceId, priceId), pricingEnvironmentFilter()))
         .limit(1);
       const planData = planDataResults[0];
 

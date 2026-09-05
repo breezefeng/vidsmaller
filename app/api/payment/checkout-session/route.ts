@@ -9,7 +9,8 @@ import { pricingPlans as pricingPlansSchema } from '@/lib/db/schema';
 import { getErrorMessage } from '@/lib/error-utils';
 import { createPayPalSubscription, isPayPalEnabled } from '@/lib/paypal';
 import { getURL } from '@/lib/url';
-import { eq } from 'drizzle-orm';
+import { pricingEnvironmentFilter } from '@/lib/pricing/environment';
+import { and, eq } from 'drizzle-orm';
 
 type RequestData = {
   provider?: string;
@@ -67,7 +68,7 @@ export async function POST(req: Request) {
           creemProductId: pricingPlansSchema.creemProductId,
         })
         .from(pricingPlansSchema)
-        .where(eq(pricingPlansSchema.creemProductId, creemProductId))
+        .where(and(eq(pricingPlansSchema.creemProductId, creemProductId), pricingEnvironmentFilter()))
         .limit(1);
 
       const plan = results[0];

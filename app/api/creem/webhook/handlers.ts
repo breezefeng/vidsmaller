@@ -10,6 +10,7 @@ import {
   CreemTransaction
 } from '@/lib/creem/types';
 import { db } from '@/lib/db';
+import { pricingEnvironmentFilter } from '@/lib/pricing/environment';
 import {
   orders as ordersSchema,
   pricingPlans as pricingPlansSchema, subscriptions as subscriptionsSchema
@@ -28,7 +29,7 @@ import {
   toCurrencyAmount,
   updateOrderStatusAfterRefund,
 } from '@/lib/payments/webhook-helpers';
-import { eq, InferInsertModel } from 'drizzle-orm';
+import { InferInsertModel, and, eq } from 'drizzle-orm';
 
 export async function handleCreemPaymentSucceeded(
   payload: CreemCheckoutCompletedEvent
@@ -129,7 +130,7 @@ export async function handleCreemInvoicePaid(
     const [plan] = await db
       .select({ id: pricingPlansSchema.id })
       .from(pricingPlansSchema)
-      .where(eq(pricingPlansSchema.creemProductId, productId))
+      .where(and(eq(pricingPlansSchema.creemProductId, productId), pricingEnvironmentFilter()))
       .limit(1);
     planId = plan?.id ?? null;
   }

@@ -12,7 +12,8 @@ import {
   decodePayPalCustomId,
   getPayPalSubscription,
 } from "@/lib/paypal";
-import { eq, InferInsertModel } from "drizzle-orm";
+import { and, eq, InferInsertModel } from "drizzle-orm";
+import { pricingEnvironmentFilter } from "@/lib/pricing/environment";
 
 function toDate(value?: string | null) {
   if (!value) {
@@ -121,7 +122,7 @@ export async function syncPayPalSubscriptionData(
       const planResults = await db
         .select({ id: pricingPlansSchema.id })
         .from(pricingPlansSchema)
-        .where(eq(pricingPlansSchema.paypalPlanId, metadata.paypalPlanId))
+        .where(and(eq(pricingPlansSchema.paypalPlanId, metadata.paypalPlanId), pricingEnvironmentFilter()))
         .limit(1);
       planId = planResults[0]?.id || null;
     }

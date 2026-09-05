@@ -3,11 +3,12 @@ import {
   retrieveCreemSubscription
 } from '@/lib/creem/client';
 import { db } from '@/lib/db';
+import { pricingEnvironmentFilter } from '@/lib/pricing/environment';
 import {
   pricingPlans as pricingPlansSchema,
   subscriptions as subscriptionsSchema
 } from '@/lib/db/schema';
-import { eq, InferInsertModel } from 'drizzle-orm';
+import { InferInsertModel, and, eq } from 'drizzle-orm';
 
 function toDate(value?: string | null) {
   if (!value) {
@@ -50,7 +51,7 @@ export async function syncCreemSubscriptionData(
     const [planRow] = await db
       .select({ id: pricingPlansSchema.id })
       .from(pricingPlansSchema)
-      .where(eq(pricingPlansSchema.creemProductId, productId))
+      .where(and(eq(pricingPlansSchema.creemProductId, productId), pricingEnvironmentFilter()))
       .limit(1);
     if (planRow) {
       planId = planRow.id;
