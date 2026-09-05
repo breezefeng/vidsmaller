@@ -32,6 +32,12 @@ export default function LoginForm({ className = "" }: LoginFormProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [isGithubLoading, setIsGithubLoading] = useState(false);
+
+  // Only offer a provider that is actually configured, otherwise the button
+  // renders but every click 500s on the callback.
+  const hasGoogle = !!process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
+  const hasGithub = !!process.env.NEXT_PUBLIC_GITHUB_CLIENT_ID;
+  const hasSocial = hasGoogle || hasGithub;
   const [captchaToken, setCaptchaToken] = useState<string>("");
   const [showTurnstile, setShowTurnstile] = useState(false);
   const turnstileRef = useRef<any>(null);
@@ -250,7 +256,9 @@ export default function LoginForm({ className = "" }: LoginFormProps) {
 
   return (
     <div className={`grid gap-6 ${className}`}>
+      {hasSocial && (
       <div className="grid gap-4">
+        {hasGoogle && (
         <Button
           variant="outline"
           onClick={() => signInSocial("google")}
@@ -272,6 +280,8 @@ export default function LoginForm({ className = "" }: LoginFormProps) {
             </Badge>
           )}
         </Button>
+        )}
+        {hasGithub && (
         <Button
           variant="outline"
           onClick={() => signInSocial("github")}
@@ -293,8 +303,11 @@ export default function LoginForm({ className = "" }: LoginFormProps) {
             </Badge>
           )}
         </Button>
+        )}
       </div>
+      )}
 
+      {hasSocial && (
       <div className="relative">
         <div className="absolute inset-0 flex items-center">
           <span className="w-full border-t" />
@@ -305,6 +318,7 @@ export default function LoginForm({ className = "" }: LoginFormProps) {
           </span>
         </div>
       </div>
+      )}
 
       <div className="grid gap-2">
         <div className="grid">

@@ -13,6 +13,30 @@ const STATIC_PAGE_MTIME = new Date(new Date().getFullYear(), 0, 1)
 
 type ChangeFrequency = 'always' | 'hourly' | 'daily' | 'weekly' | 'monthly' | 'yearly' | 'never' | undefined
 
+/**
+ * The sitemap is generated at build time. A missing or unreachable database
+ * must not be able to fail the whole deployment, so every DB read here is
+ * best-effort and falls back to a static timestamp.
+ */
+async function latestPostMtime(
+  postType: 'blog' | 'glossary',
+  fallback: Date
+): Promise<Date> {
+  try {
+    const [result] = await db
+      .select({ latest: max(postsSchema.updatedAt) })
+      .from(postsSchema)
+      .where(eq(postsSchema.postType, postType));
+    return result?.latest ? new Date(result.latest) : fallback;
+  } catch (error) {
+    console.warn(
+      `[sitemap] could not read latest ${postType} mtime, using fallback:`,
+      (error as Error).message
+    );
+    return fallback;
+  }
+}
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Static pages
   const staticPages = [
@@ -28,23 +52,23 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }))
   })
 
-  const [latestGlossaryResult] = await db
-    .select({ latest: max(postsSchema.updatedAt) })
-    .from(postsSchema)
-    .where(eq(postsSchema.postType, 'glossary'));
-  const glossaryContentMtime = latestGlossaryResult?.latest
-    ? new Date(latestGlossaryResult.latest)
-    : STATIC_PAGE_MTIME;
+  // Legal pages are not locale-prefixed (app/(site)) but must be indexable:
+  // the Google OAuth consent screen links to them.
+  const legalPages: MetadataRoute.Sitemap = [
+    '/privacy-policy',
+    '/terms-of-service',
+    '/refund-policy',
+  ].map((page) => ({
+    url: `${siteUrl}${page}`,
+    lastModified: STATIC_PAGE_MTIME,
+    changeFrequency: 'yearly' as ChangeFrequency,
+    priority: 0.3,
+  }));
+
+  const glossaryContentMtime = await latestPostMtime('glossary', STATIC_PAGE_MTIME);
+  const blogContentMtime = await latestPostMtime('blog', STATIC_PAGE_MTIME);
 
   const allBlogSitemapEntries: MetadataRoute.Sitemap = [];
-
-  const [latestBlogResult] = await db
-    .select({ latest: max(postsSchema.updatedAt) })
-    .from(postsSchema)
-    .where(eq(postsSchema.postType, 'blog'));
-  const blogContentMtime = latestBlogResult?.latest
-    ? new Date(latestBlogResult.latest)
-    : STATIC_PAGE_MTIME;
 
   // Add blog list page
   for (const locale of LOCALES) {
@@ -141,6 +165,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   return [
     ...pages,
+    ...legalPages,
     ...uniqueBlogPostEntries,
     ...uniqueGlossaryEntries
   ]

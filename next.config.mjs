@@ -1,5 +1,5 @@
 import withBundleAnalyzer from "@next/bundle-analyzer";
-import { withSentryConfig } from "@sentry/nextjs";
+import { withSentryConfig } from "@sentry/nextjs/config";
 import createNextIntlPlugin from "next-intl/plugin";
 
 const withNextIntl = createNextIntlPlugin();
@@ -24,14 +24,15 @@ const nextConfig = {
     },
   ],
   images: {
-    unoptimized:
-      process.env.NEXT_PUBLIC_OPTIMIZED_IMAGES &&
-      process.env.NEXT_PUBLIC_OPTIMIZED_IMAGES === "false",
+    // Must always be a real boolean — Next 16 rejects the empty string that an
+    // unset-but-declared env var produces.
+    unoptimized: process.env.NEXT_PUBLIC_OPTIMIZED_IMAGES === "false",
     remotePatterns: [
       ...(process.env.R2_PUBLIC_URL
         ? [
             {
-              hostname: process.env.R2_PUBLIC_URL.replace("https://", ""),
+              protocol: "https",
+              hostname: process.env.R2_PUBLIC_URL.replace(/^https?:\/\//, ""),
             },
           ]
         : []),
@@ -71,7 +72,9 @@ const sentryConfig = {
   org: process.env.SENTRY_ORG,
   project: process.env.SENTRY_PROJECT,
   // Automatically tree-shake Sentry logger statements in production
-  disableLogger: true,
+  treeshake: {
+    removeDebugLogging: true,
+  },
 };
 
 export default withSentryConfig(
