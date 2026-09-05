@@ -3,14 +3,24 @@ import { resolveRequester } from '@/lib/compress/quota';
 import { findJobForRequester, syncJob } from '@/lib/compress/service';
 
 export const runtime = 'nodejs';
-export const maxDuration = 300;
+
+/**
+ * Streaming the file through this function costs double bandwidth (in + out)
+ * and blows past the serverless execution limit on large videos, so the default
+ * is a redirect to the provider's short-lived URL.
+ *
+ * Set COMPRESS_PROXY_DOWNLOADS=true when running somewhere without those
+ * constraints and you would rather never expose the upstream host — and raise
+ * maxDuration below, since proxying a large file takes far longer than a 302.
+ */
+const PROXY_DOWNLOADS = process.env.COMPRESS_PROXY_DOWNLOADS === 'true';
+
+// Route segment config must be a static literal; Next cannot analyse an
+// expression here. 60s is the Vercel Hobby ceiling and is ample for a redirect.
+export const maxDuration = 60;
 
 type Params = { params: Promise<{ id: string }> };
 
-/**
- * Streams the finished file through our own domain so the user never sees the
- * upstream provider, and so the filename / headers are under our control.
- */
 export async function GET(req: Request, { params }: Params) {
   const { id } = await params;
 
@@ -29,6 +39,11 @@ export async function GET(req: Request, { params }: Params) {
     synced.downloadExpiresAt.getTime() < Date.now()
   ) {
     return apiResponse.error('Download link has expired', 410);
+  }
+
+  // Ownership has been verified above; hand the transfer to the provider.
+  if (!PROXY_DOWNLOADS) {
+    return Response.redirect(synced.downloadUrl, 302);
   }
 
   const range = req.headers.get('range');
