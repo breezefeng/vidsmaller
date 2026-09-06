@@ -283,9 +283,29 @@ setup: a test sent while Cloudflare was still syncing got `550 5.1.1 Address
 does not exist`, and the retry after the fix was suppressed rather than sent.
 The entry has been removed.
 
-To reply *as* support@vidsmaller.com, add it in Gmail under "Send mail as" with
-SMTP host `smtp.resend.com`, port 587, username `resend`, password =
-`RESEND_API_KEY`.
+**Replying as support@ is configured too.** Gmail (breezeszfeng@gmail.com) has
+`VidSmaller Support <support@vidsmaller.com>` under 账号和导入 → 用其他地址发送邮件,
+relaying through Resend:
+
+| Field | Value |
+| --- | --- |
+| SMTP server | `smtp.resend.com` |
+| Port / security | 587, STARTTLS |
+| Username | `resend` |
+| Password | `RESEND_API_KEY` |
+
+回复邮件时 is set to **用此相同地址回复**, not the default address — without that,
+hitting reply on a support mail would quietly answer from the personal Gmail
+address, which defeats the whole setup.
+
+Verified end to end 2026-09-06: mail to support@ → forwarded to the Gmail inbox
+→ reply auto-selected `VidSmaller Support <support@vidsmaller.com>` → delivered
+and displayed under that identity.
+
+One quirk worth knowing: Gmail prefills the SMTP server by guessing from the
+domain's MX, so it offered `route2.mx.cloudflare.net`. That is the *inbound*
+host and would never have worked — it has to be overwritten with
+`smtp.resend.com`.
 
 ### 7. Rate limiting — done
 
