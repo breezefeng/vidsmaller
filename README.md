@@ -37,23 +37,39 @@ browser                    vidsmaller (Next.js)              FreeConvert
    |----------------------------->|------------------------------>|
 ```
 
-### Why there is no S3 / R2 / OSS in the main path
+### Why every upload is staged in R2 first
 
-videocompress.ai stages every upload in Alibaba OSS first. That is not necessary:
-FreeConvert's `import/upload` task hands back a **per-job upload URL**, so the
-browser can POST the file directly to the encoder. No bucket, no egress bill, no
-copy of the user's footage on our side.
+> Reversed 2026-09-06. This used to say "there is no S3 / R2 / OSS in the main
+> path" and treated staging as an optional fallback. Billing data killed that
+> design — see docs/freeconvert-benchmark.md.
 
-An **optional** Cloudflare R2 fallback exists (`lib/compress/staging.ts`) for the
-one case direct upload cannot cover — a browser or corporate proxy blocking the
-cross-origin POST. If `R2_*` is configured, the client detects the failure,
-PUTs to a presigned R2 URL instead, and the job is recreated with `import/url`.
-The staged object is deleted as soon as the job settles.
+FreeConvert bills per *task*, rounded up, with a one-minute floor each:
 
-**Verified 2026-09-04:** the upload host responds with
-`Access-Control-Allow-Origin: *`, so direct browser upload works and the R2
-fallback is genuinely optional. Re-check any time with
-`pnpm test:freeconvert ./some.mp4`.
+```
+job_minutes = Σ over tasks: max(1, ceil(task_seconds / 60))
+```
+
+The `import` task is metered by **wall clock**, so a browser POSTing straight to
+the encoder bills us for the visitor's uplink. The same 600 MB file costs 1
+conversion minute at 10 MB/s and **10 minutes at 1 MB/s** — a variable we do not
+control and cannot see.
+
+Staging in R2 moves that time off their meter. The browser PUTs to our bucket
+(not billed by FreeConvert), then `import/url` pulls server-to-server from the
+Cloudflare edge. Measured on a 593 MB file:
+
+| | import | compress | export | billed |
+| --- | --- | --- | --- | --- |
+| browser → FreeConvert | 127.8 s → 3 | 81 s → 2 | → 1 | **6 min** |
+| browser → R2 → FreeConvert | 18.3 s → 1 | 81 s → 2 | → 1 | **4 min** |
+
+R2 egress is free, so the 33% saving costs nothing. It also removed a silent
+waste in the old fallback: it created a job, tried the direct upload, and on
+failure created a *second* job — burning a full set of operations on the
+abandoned one.
+
+The staged object is deleted as soon as the job settles, with an R2 lifecycle
+rule as backstop (see §8).
 
 ---
 
@@ -232,11 +248,11 @@ silently stops existing. Verified in production: request 3 of 4 is rejected with
 
 ### 8. Cloudflare R2 — done
 
-R2 is **not** in the video path (see "Why there is no S3 / R2 / OSS" above), but the
-user-avatar upload, the admin blog/glossary image picker and the optional
-`lib/compress/staging.ts` fallback all go through it. Without `R2_*` set, every
-avatar upload fails with "Failed to upload avatar" — and because the server
-action returns early, the Full Name change is silently dropped with it.
+R2 is **on the critical path for every compression** (see "Why every upload is
+staged in R2 first" above), and also carries user avatars and the admin
+blog/glossary image picker. Without `R2_*` set, every avatar upload fails with
+"Failed to upload avatar" — and because the server action returns early, the
+Full Name change is silently dropped with it.
 
 | Var | Value |
 | --- | --- |
@@ -249,13 +265,75 @@ action returns early, the Full Name change is silently dropped with it.
 vidsmaller.com zone), not the rate-limited `*.r2.dev` URL, so objects are served
 and cached at the Cloudflare edge.
 
-Two gotchas:
+#### Bucket configuration (not in code — set it in the dashboard)
+
+Two bucket-level settings the app depends on. Neither can be managed by the
+running code: `R2_ACCESS_KEY_ID` is scoped *Object Read & Write*, so
+`PutBucketCors` / `PutBucketLifecycleConfiguration` both return `AccessDenied`.
+Changing them needs the dashboard or a separate Admin-scoped token.
+
+**1. CORS policy** — R2 → `vidsmaller` → Settings → CORS Policy
+
+```json
+[
+  {
+    "AllowedOrigins": [
+      "https://vidsmaller.com",
+      "https://www.vidsmaller.com",
+      "http://localhost:3000"
+    ],
+    "AllowedMethods": ["PUT", "GET", "HEAD"],
+    "AllowedHeaders": ["content-type"],
+    "ExposeHeaders": ["ETag"],
+    "MaxAgeSeconds": 3600
+  }
+]
+```
+
+**A new bucket has no CORS policy, and without one every staged upload fails.**
+The browser's preflight gets:
+
+```
+OPTIONS → 403  <Code>Unauthorized</Code>
+              <Message>CORS not configured for this bucket</Message>
+```
+
+which surfaces to the user as *"Staged upload failed. Check your network and
+retry."* This took production down on 2026-09-06: staging had just been promoted
+from fallback to default, and the end-to-end test used `node fetch`, which does
+not send a preflight. **Any change to the upload path has to be exercised in a
+real browser** — `node` will happily pass a test the browser cannot.
+
+Add a new origin here whenever the site gains a domain (Vercel preview URLs are
+not covered).
+
+**2. Object lifecycle rule** — same settings page
+
+| Rule | Prefix | Action |
+| --- | --- | --- |
+| `expire-compress-input` | `compress-input/` | delete 1 day after upload |
+
+`syncJob` deletes the staged object when a job reaches a terminal state, but
+there are paths it never reaches: the visitor closes the tab, the upload aborts,
+or the job fails before creation. Two 60 MB orphans showed up during a single
+afternoon of testing. The rule is the backstop.
+
+Check both with `node scripts/r2-staging-check.mjs` — it lists what is sitting in
+`compress-input/` and flags anything older than the lifecycle window.
+
+#### Other gotchas
 
 - `next.config.mjs` reads `R2_PUBLIC_URL` at **build** time to build
   `images.remotePatterns`. Changing it requires a redeploy, not just an env update.
 - Enabling R2 requires a payment method on the Cloudflare account even though
   the free tier (10 GB, 1M class-A, 10M class-B per month) covers this workload
   many times over.
+- `import/url` is handed the **public** `cdn.vidsmaller.com` URL, not a presigned
+  one. Presigned URLs do not survive third-party HTTP clients: the AWS SDK signs
+  non-standard query params (`x-id`, `x-amz-checksum-mode`) and dropping *any* of
+  them yields `SignatureDoesNotMatch`. FreeConvert normalises the URL and strips
+  them, so every staged import 403'd. Confidentiality now rests on the key being
+  unguessable (v4 UUID, 122 bits) plus prompt deletion.
 
 ### 9. Run
 
@@ -269,18 +347,35 @@ pnpm dev
 
 Everything tunable lives in **`config/compress.ts`**.
 
-| Tier      | Max file | Batch | Credits/mo | Retention | H.265 |
-| --------- | -------- | ----- | ---------- | --------- | ----- |
-| anonymous | 200 MB   | 1     | –          | 2 h       | no    |
-| free      | 1 GB     | 3     | 30         | 24 h      | no    |
-| pro       | 5 GB     | 10    | 600        | 7 d       | yes   |
-| max       | 10 GB    | 25    | 2,000      | 30 d      | yes   |
+| Tier      | Promised | **Effective** | Batch | Credits/mo | Retention | H.265 |
+| --------- | -------- | ------------- | ----- | ---------- | --------- | ----- |
+| anonymous | 200 MB   | 200 MB        | 1     | –          | 2 h       | no    |
+| free      | 1 GB     | 1 GB          | 3     | 30         | 24 h      | no    |
+| pro       | 5 GB     | **1.4 GB**    | 10    | 600        | 7 d       | yes   |
+| max       | 10 GB    | **1.4 GB**    | 25    | 2,000      | 30 d      | yes   |
+
+`TIER_LIMITS` holds the *product promise*; `PROVIDER_MAX_FILE_SIZE` is what the
+FreeConvert plan we pay for will actually accept. Every size check goes through
+`effectiveMaxFileSize()` — `min()` of the two — so we can never take money for a
+job the provider is guaranteed to reject. Upgrading is one word: flip
+`PROVIDER_PLAN` to `'pro'` and the 5 GB promise comes back on its own.
+
+**The `max` tier is switched off** in `lib/db/seed/pricing-config.ts` until then:
+its headline is 10 GB per file, which the current plan cannot deliver.
 
 - Signed-out visitors get `ANONYMOUS_DAILY_LIMIT` (2) free jobs per day per IP,
   enforced through Upstash Redis. Without Redis the limiter fails open.
+- A second, account-wide gate (`lib/compress/budget.ts`) ring-fences
+  `FREE_TRAFFIC_BUDGET_SHARE` (60%) of the daily conversion-minute pool for
+  anonymous + free traffic, so a spike cannot starve paying customers mid-month.
+  Tune without a deploy via `FC_FREE_DAILY_MINUTES`.
 - **1 credit = 1 minute of source video** on H.264, 2 on H.265, 3 on AV1,
-  minimum 1. Duration is read in the browser via `<video>` metadata; if that
+  **minimum 3**. Duration is read in the browser via `<video>` metadata; if that
   fails we fall back to charging by file size.
+  The floor is 3 because the provider's own floor is 3 (one minute per task ×
+  import + compress + export). Charging 1 credit for a short clip was a
+  guaranteed loss: 600 one-minute clips on the $9 Pro plan burned ~1800
+  conversion minutes ($13.50) for $9 of revenue.
 - Credits are charged when the job is created and **automatically refunded**
   (exactly once) if the provider reports failure.
 
@@ -306,12 +401,13 @@ lib/freeconvert/presets.ts               settings schema -> job definition
 lib/compress/quota.ts                    tier resolution + rate limiting
 lib/compress/credits.ts                  charge / refund (userId-scoped)
 lib/compress/service.ts                  provider sync, refunds, job view
-lib/compress/staging.ts                  optional R2 fallback
+lib/compress/staging.ts                  R2 staging (default upload path)
+lib/compress/budget.ts                   account-wide conversion-minute budget
 lib/compress/client.ts                   browser upload + API helpers
 app/api/compress/jobs/route.ts           POST create job
 app/api/compress/jobs/[id]/route.ts      GET poll / PATCH uploaded / DELETE
 app/api/compress/jobs/[id]/download/     streamed download proxy
-app/api/compress/staging-url/route.ts    presigned R2 PUT (fallback)
+app/api/compress/staging-url/route.ts    presigned R2 PUT (default path)
 app/api/webhooks/freeconvert/route.ts    HMAC-verified job events
 components/compress/                     dropzone, settings, queue UI
 ```
@@ -321,11 +417,21 @@ components/compress/                     dropzone, settings, queue UI
 - [x] Google sign-in, including One Tap
 - [x] Signup grant: new user received 30 credits
 - [x] Real compression: 52.4 MB -> 23.9 MB (-54.5%), 1 credit charged
-- [x] Direct browser -> FreeConvert upload (CORS confirmed `*`)
 - [x] Pricing section reads live plans from Supabase
 - [x] Live Stripe checkout session ($9 USD, correct live plan id in metadata)
 - [x] Anonymous rate limit enforced (2/day per IP)
 - [x] Avatar upload -> R2, served from `cdn.vidsmaller.com`
+
+Re-verified 2026-09-06 after the switch to R2 staging, **from a real browser**
+(`node fetch` skips the CORS preflight and cannot prove this path works):
+
+- [x] CORS preflight `OPTIONS` -> 204 with `Allow-Origin/Methods/Headers`
+- [x] Cross-origin `PUT` browser -> R2 -> 200
+- [x] `import/url` pulls from `cdn.vidsmaller.com` -> 200, byte-exact
+- [x] Full job: staging-url -> R2 -> create -> compress -> completed
+- [x] Oversize upload rejected with 413 at the clamped 1.4 GB ceiling
+- [x] `provider_billed_minutes` persisted; estimator matches actuals
+      (59 MB/1 min -> 3, 593 MB/10 min -> 4)
 
 ## TODO before launch
 
