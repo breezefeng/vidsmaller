@@ -34,6 +34,16 @@
  * quality, measured locally at a fixed bitrate on a 60s 720p clip:
  *
  *   VMAF  medium 96.06   fast 96.05   faster 95.96   veryfast 95.34
+ *
+ * HOW ACCURATE CAN THIS BE — read this before "fixing" the constants.
+ *
+ * The same file at the same settings, four separate runs, was measured at
+ * 16.5s, 19.4s, 27.3s and ~45s of compress time. The provider spreads jobs
+ * across machines of visibly different speeds, so a 2.7x spread on identical
+ * input is normal and no constant can predict a single run. The prediction
+ * therefore aims at the middle of that spread, and the curve in progress.ts is
+ * built to survive being wrong in both directions: an early finish snaps to
+ * 100%, a late one slows down and keeps creeping.
  */
 
 import {
