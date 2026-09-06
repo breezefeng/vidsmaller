@@ -1,0 +1,191 @@
+---
+title: "Discord's File Size Limit Is 20 MB Now — Here's How to Fit Under It"
+description: "Discord raised the free upload limit from 10 MB to 20 MB in August 2026, and most guides online still say 10. The current numbers, what fits inside them, and why uploads still fail under the cap."
+slug: /discord-file-size-limit
+tags: discord,file-size-limit,video-compression,nitro
+featuredImageUrl: https://cdn.vidsmaller.com/seo/blog/discord-file-size-limit-cover-a50ad907409aa1d4.webp
+publishedAt: 2026-09-06
+status: published
+isPinned: false
+---
+
+Discord doubled the free upload limit from 10 MB to 20 MB in August 2026.
+Almost nothing on the internet has caught up — including, at the time of
+writing, several of Discord's own help pages, which still quote the old
+number.
+
+So here are the current limits, how much video actually fits inside them, and
+the two reasons an upload still fails when the file looks small enough.
+
+## Quick takeaways
+
+- **Free accounts: 20 MB per file.** Raised from 10 MB in August 2026. Before
+  that it was 25 MB, which is why you will find all three numbers quoted
+  confidently.
+- **Nitro Basic: 50 MB. Nitro: 500 MB.** The cap follows your account, not the
+  server you are posting in.
+- **Target 19 MB, not 20.** Two percent over a hard ceiling is a failed upload,
+  and Discord counts bytes differently than your file manager might.
+- **Discord does not re-encode your video.** Unlike Instagram or WhatsApp, what
+  you upload is exactly what your friends download — so careful compression is
+  worth more here than almost anywhere else.
+- Older mobile clients can still enforce the old 10 MB cap. If the upload
+  absolutely has to work, aim at 10.
+
+## The current limits
+
+| Plan | Limit per file |
+| --- | --- |
+| Free | 20 MB |
+| Nitro Basic | 50 MB |
+| Nitro | 500 MB |
+
+Three things worth knowing about how this is enforced:
+
+**It is per file, not per message.** Attaching four files means four separate
+20 MB budgets, not one shared between them.
+
+**It follows your account, not the server.** A Nitro subscriber posting in a
+completely ordinary free server still gets their 500 MB. Server boost level
+does not change your upload cap — that is a persistent misconception, and it
+comes from the days when boosting did raise the server's limit.
+
+**Discord does not compress what you upload.** It stores and serves your exact
+bytes. This is genuinely different from most platforms, and it changes the
+calculation: on Instagram or TikTok your careful export gets re-encoded anyway,
+so effort is partly wasted. On Discord, the quality you check before uploading
+is the quality everyone sees.
+
+## What 20 MB actually holds
+
+The limit is the easy half of the question. Here is the half that decides
+whether the video is watchable: at a 19 MB target, this is exactly how much
+bitrate is left at each length, and the largest resolution that bitrate carries
+without falling apart.
+
+| Video length | Bitrate left for video | Comfortable at |
+| --- | --- | --- |
+| 30 seconds | 5,079 kbps | 1080p |
+| 1 minute | 2,475 kbps | 720p |
+| 2 minutes | 1,174 kbps | 480p |
+| 5 minutes | 393 kbps | 360p, and visibly rough |
+| 10 minutes | 132 kbps | not realistic |
+
+The bitrate column is arithmetic: 19 MB spread across the duration, minus
+128 kbps for stereo audio and about 2% for container overhead. It is a hard
+ceiling, not an estimate. The resolution column is a judgement, derived from
+published H.264 bitrate ladders and pulled down about a third because
+re-encoding already-compressed footage survives lower bitrates than encoding a
+clean master does.
+
+The practical reading: **anything under about two minutes is comfortable.**
+Past five minutes, 20 MB stops being enough for footage anyone wants to watch,
+and you should either trim it or use a link.
+
+### Screen recordings are the exception
+
+If you are posting a clip of a game, a bug, or your screen, you have far more
+room than the table suggests. We measured this: at an aggressive setting a
+1080p screen recording scored VMAF 89.9 at 0.79 MB for ten seconds, while
+camera footage at the same setting scored 74.4 and was three times larger.
+
+Screen content is mostly flat colour and mostly unchanged between frames, so an
+encoder can describe it in almost no bits. A moving scene with sensor noise has
+genuinely new information in every frame.
+
+So a five-minute screen capture can be perfectly watchable inside 20 MB, where
+five minutes of handheld camera footage will not be. The full measurements are
+in [CRF explained](/blog/crf-explained-what-number-to-use).
+
+## How to compress a video for Discord
+
+1. **Trim first.** The dead seconds at the start are bits you never have to
+   spend. Free, and it costs no quality at all.
+2. **Set a target size of 19 MB.** Not 20 — see below.
+3. **Drop to 720p if the clip is over a minute.** On the phone or window most
+   people will watch it in, 720p at a healthy bitrate looks better than 1080p
+   starved of one.
+4. **Stay on H.264.** H.265 gives you roughly 30% smaller files, but plenty of
+   people's devices will refuse to play it, and "it won't open for me" is a
+   worse outcome than a slightly larger file.
+
+Our [Discord compressor](/compress-video-for-discord) arrives with the target
+already set to 19 MB and the codec already on H.264.
+
+## Why an upload fails when the file is under the limit
+
+Two causes, and both are invisible from the Discord UI.
+
+### The megabyte is not the megabyte
+
+Discord counts a mebibyte: 1,048,576 bytes. Some file managers show MB as
+1,000,000 bytes. A file that reads as "20.0 MB" in one of those is 20,000,000
+bytes, which is 19.07 MiB — that one is fine. But the reverse rounding bites
+too, and a file sitting at exactly the line has no margin for either.
+
+Targeting 19 MB gives you a full megabyte of headroom and the question
+disappears.
+
+### Older mobile clients still enforce 10 MB
+
+The August 2026 increase did not reach every client at once. A 15 MB file can
+upload from desktop and fail from a phone that has not updated. If the upload
+has to work the first time — you are posting from someone else's phone, or you
+will not be around to retry — target 10 MB and you are safe against every
+version of the cap.
+
+## Sending something bigger than 500 MB
+
+Even Nitro tops out at 500 MB per file. Above that, the options are:
+
+- **Compress harder.** A 45-minute recording at 500 MB is carrying about
+  1,500 kbps, which is fine at 720p. Most long recordings have far more slack
+  than people assume.
+- **Split the file.** Two 20-minute halves beat one 40-minute file that will
+  not send.
+- **Link it.** For anything genuinely large, a link to cloud storage is a better
+  experience than a 500 MB attachment your friends have to download before they
+  can see whether it was worth it.
+
+## FAQ
+
+### What is the Discord file size limit in 2026?
+
+20 MB on a free account, 50 MB on Nitro Basic, 500 MB on Nitro. The free tier
+was 10 MB until August 2026 and 25 MB before that, which is why guides
+disagree. Server boost level does not affect it.
+
+### Does boosting a server increase the upload limit?
+
+No, not any more. The cap follows the account of whoever is uploading. This
+used to work differently, which is why the belief persists.
+
+### Does Discord compress uploaded videos?
+
+No. Discord stores and serves the exact file you uploaded. Images are sometimes
+re-encoded for previews, but the original is preserved and video is untouched.
+
+### How long a video fits in 20 MB?
+
+About two minutes at 720p before quality starts to suffer, or 30 seconds at
+1080p. Screen recordings do much better — several minutes at 1080p is realistic
+because screen content compresses far more efficiently than camera footage.
+
+### Why does my upload fail even though the file is under 20 MB?
+
+Usually an older mobile client still enforcing the previous 10 MB limit, or a
+file sitting so close to the line that a rounding difference pushes it over.
+Target 19 MB, or 10 MB if it has to work everywhere.
+
+### Can I send a video over 20 MB without Nitro?
+
+Compress it, or post a link. For most clips people want to share on Discord,
+20 MB is genuinely enough — it is longer recordings and high-motion footage
+that need either a stronger setting or a smaller frame.
+
+---
+
+[Compress a video for Discord](/compress-video-for-discord) — the target is
+already set, no account needed, no watermark. Other limits:
+[email](/compress-video-for-email) · [WhatsApp](/compress-video-for-whatsapp) ·
+[Telegram](/compress-video-for-telegram) · [TikTok](/compress-video-for-tiktok)

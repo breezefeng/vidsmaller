@@ -222,7 +222,7 @@
       },
       {
         "question": "How do I compress a video to under 25 MB for email?",
-        "answer": "Use Target size mode and type 25 MB — or 24 to leave headroom, since Gmail counts the encoded attachment, not the raw file. We encode two-pass to land under that ceiling. For a clip longer than about ten minutes, 25 MB will look rough at 1080p; drop the resolution to 720p first and it will hold up much better at the same file size."
+        "answer": "Target 18 MB, not 25. Gmail measures the base64-encoded attachment, which is about 1.37x the file on your disk — so a 25 MB video is a ~34 MB message and bounces. Use Target size mode, type 18, and we encode two-pass to land just under it. For anything over about two minutes, drop to 720p first: at 18 MB a clean 720p file looks considerably better than a 1080p one starved of bitrate."
       },
       {
         "question": "Is compressing a video online safe?",

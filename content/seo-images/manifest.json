@@ -28,6 +28,26 @@
       "usedBy": [
         "blog/how-to-compress-a-video-without-losing-quality"
       ]
+    },
+    {
+      "id": "post-discord-limit",
+      "group": "blog",
+      "slug": "discord-file-size-limit-cover",
+      "prompt": "A queue of solid cube-shaped blocks of differing sizes approaching a narrow rectangular aperture cut into a tall flat wall. The blocks small enough to fit are passing through and one of them is signal orange; the oversized ones are stopped and stacked behind the wall. Straight-on perspective, the aperture roughly centred, the queue filling the frame from left to right.",
+      "alt": "Illustration of video files queueing at a narrow upload aperture, with only the small ones passing through",
+      "usedBy": [
+        "blog/discord-file-size-limit"
+      ]
+    },
+    {
+      "id": "post-email-limit",
+      "group": "blog",
+      "slug": "email-attachment-limit-cover",
+      "prompt": "An envelope shape rendered as a flat open container, centred. Inside it a solid block; beside it the same block visibly swollen to about a third larger and overflowing past the envelope's edge, drawn in signal orange to mark it as the problem. A pair of thin bracket marks measures the difference between the two blocks. Straight-on perspective, balanced across the frame.",
+      "alt": "Illustration of an email attachment swelling past the envelope it has to fit inside",
+      "usedBy": [
+        "blog/email-attachment-size-limit-video"
+      ]
     }
   ]
 }

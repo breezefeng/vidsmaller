@@ -17,6 +17,16 @@ interface PostCardProps {
   showCover?: boolean;
 }
 
+/**
+ * Local MDX posts carry their slug with a leading slash (`/crf-explained`),
+ * DB posts do not. Joining naively gave every card an href of `/blog//slug`,
+ * which 308-redirects: an extra hop on every internal link, and a second URL
+ * shape for crawlers to find.
+ */
+function postHref(baseUrl: string, slug: string) {
+  return `${baseUrl.replace(/\/$/, "")}/${slug.replace(/^\//, "")}`;
+}
+
 function getVisibilityInfo(visibility: string) {
   switch (visibility) {
     case "subscribers":
@@ -52,7 +62,7 @@ function PostCardCover({
 
   return (
     <I18nLink
-      href={`${baseUrl}/${post.slug}`}
+      href={postHref(baseUrl, post.slug)}
       title={post.title}
       prefetch={false}
       className="group block h-full focus:outline-none"
@@ -114,7 +124,7 @@ function PostCardCompact({
 
   return (
     <I18nLink
-      href={`${baseUrl}/${post.slug}`}
+      href={postHref(baseUrl, post.slug)}
       title={post.title}
       prefetch={false}
       className="group block w-full focus:outline-none"
