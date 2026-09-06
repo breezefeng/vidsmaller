@@ -115,23 +115,38 @@ compress-video-for-discord-hero-a3f2c891e04b7d16.webp
 1. 背景换成 manifest 里对应的插画（低透明度）
 2. 工具页（Tier 1 那 24 个）目前**没有** `opengraph-image.tsx`，要补
 
-### 第 2 类 · 数据图表 ← 最高优先级
+### 第 2 类 · 数据图表 ← 最高优先级 ✅ 管线已建
 
-这是差异化的载体。数据源现成：
+**已做**（`components/charts/`，服务端 inline SVG，零 client JS）：
 
-```
-scripts/fc-benchmark-results.jsonl     FreeConvert 实测结果
-docs/freeconvert-benchmark.md          593 MB 文件的分段耗时
-```
+| 图 | 落地 | 数据性质 |
+| --- | --- | --- |
+| `BilledMinutesChart` 实测秒数 vs 计费分钟 | `/pricing` | **实测**，3 个真任务，带 jobId |
+| `BudgetMatrix` 时长 × 分辨率 | 8 个平台页 | **纯算术**，图上写明 not measured |
 
-要做的图：
+数据层是 `lib/seo/benchmark.ts`，逐字段誊写自 `scripts/fc-benchmark-results.jsonl`，
+`pnpm check:benchmark` 常驻校验防漂移。
 
-- 「不同 CRF 值 → 输出体积 / SSIM」双轴曲线
-- 「同一源文件在 9 个在线压缩器上的输出体积」条形图（喂榜单文章）
-- 「时长 × 分辨率 → 10 MB 内可行码率」热力图（喂全部平台限制页）
+inline SVG 而不是 `<img>`：数字以 `<text>` 节点留在 DOM 里，爬虫和答案引擎读得到。
+这才是当初费劲去测的意义。
 
-用 `ImageResponse` 或直接 inline SVG 渲染。**inline SVG 更好**——文字可被搜索引擎
-和 LLM 直接读取，等于把数据喂进了 AI 答案里。
+#### ⚠️ 撤回：本文档 v1 提的另外两张图做不出来
+
+| v1 提的图 | 为什么做不了 | 补齐需要什么 |
+| --- | --- | --- |
+| CRF → 体积 / SSIM 双轴曲线 | 三次实测**全部用 `percentage:50` 模式**，没跑过 CRF sweep；**SSIM / PSNR / VMAF 一个都没测** | 跑一轮 CRF 18/20/23/26/28/32 × 3 种素材（实拍 / 录屏 / 动画），每档记录输出体积 + VMAF |
+| 9 个在线压缩器输出体积对比 | **从没测过任何竞品** | 同一个源文件手动跑 VEED / Clideo / FreeConvert / Kapwing 等，记录输出体积、耗时、有无水印 |
+
+编这两张图等于把「有实测数字」这个定位自己填了，**比不做更糟**。
+
+这两轮测量做完，能同时喂：榜单文章（第 3 篇）、benchmark 文章（第 4 篇）、
+CRF 原理文（第 6 篇）、编码器对比文（第 7 篇）——即 Tier 2 里最值钱的四篇。
+所以它是下一步该做的事，不是图表管线的遗留问题。
+
+#### 这份实测数据还**不包含**什么
+
+写在 `lib/seo/benchmark.ts` 文件头，避免下一个人在上面盖一张它撑不起的图：
+没有 CRF sweep、没有任何画质指标、没有竞品数据。样本量 N=3。
 
 ### 第 3 类 · UI 截图
 

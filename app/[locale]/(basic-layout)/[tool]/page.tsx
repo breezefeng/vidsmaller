@@ -7,6 +7,7 @@ import {
 } from "@/components/seo/JsonLd";
 import { BG1 } from "@/components/shared/BGs";
 import FeatureBadge from "@/components/shared/FeatureBadge";
+import BudgetMatrix from "@/components/charts/BudgetMatrix";
 import BudgetTable from "@/components/tools/BudgetTable";
 import LimitsTable from "@/components/tools/LimitsTable";
 import { PLATFORMS, platformFromToolSlug, toolSlug } from "@/config/platforms";
@@ -185,6 +186,18 @@ export default async function ToolPage({ params }: Props) {
               durations={platform.durations}
               locale={locale}
             />
+
+            {/* The table gives the single best answer per length; the matrix
+                shows the headroom behind it. The table stays the accessible
+                source of truth — the SVG is inline so its numbers are still in
+                the DOM, but a screen reader has the real table right above. */}
+            <div className="mt-6">
+              <BudgetMatrix
+                targetMb={platform.recommendedTargetMb}
+                durations={platform.durations}
+                platform={platform.name}
+              />
+            </div>
           </div>
         </section>
 
