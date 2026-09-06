@@ -1,3 +1,4 @@
+import BilledMinutesChart from "@/components/charts/BilledMinutesChart";
 import { PricingByGroup } from "@/components/pricing";
 import { BreadcrumbJsonLd, FaqJsonLd } from "@/components/seo/JsonLd";
 import { BG1 } from "@/components/shared/BGs";
@@ -67,12 +68,19 @@ export default async function PricingPage({ params }: Props) {
         <section className="py-16">
           <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
             <div className="flex flex-col gap-8">
-              {body.map((block) => (
+              {body.map((block, i) => (
                 <div key={block.title}>
                   <h2 className="mb-2 text-xl font-semibold">{block.title}</h2>
                   <p className="text-muted-foreground leading-relaxed">
                     {block.text}
                   </p>
+                  {/* The three-minute floor is the one pricing claim that
+                      sounds like an excuse until you show the invoice. */}
+                  {i === 0 && (
+                    <div className="mt-6">
+                      <BilledMinutesChart />
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
