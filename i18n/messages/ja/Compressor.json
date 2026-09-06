@@ -114,7 +114,8 @@
       "useResolution": "{label} に落とす · {kbps} kbps",
       "screenNote": "画面録画は例外で、はるかに低いビットレートでも視聴に耐えます。"
     },
-    "costCredits": "{count, plural, =0 {無料} other {# クレジット}}",
+    "costCredits": "{count, plural, =0 {無料} other {≈ # クレジット}}",
+    "costNote": "先に確保し、完了後に未使用分を返却します",
     "costFree": "無料 · 登録不要",
     "saved": "削減 <hl>{amount}</hl>",
     "remove": "削除",

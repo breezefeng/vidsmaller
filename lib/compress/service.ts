@@ -1,11 +1,20 @@
 import 'server-only';
 
-import { billedMinutes, estimateCredits, TIER_LIMITS } from '@/config/compress';
+import {
+  billedMinutes,
+  estimateCredits,
+  MIN_CREDITS_PER_JOB,
+  TIER_LIMITS,
+} from '@/config/compress';
 import {
   recordProviderMinutes,
   settleFreeBudget,
 } from '@/lib/compress/budget';
-import { refundCredits } from '@/lib/compress/credits';
+import {
+  chargeCredits,
+  InsufficientCreditsError,
+  refundCredits,
+} from '@/lib/compress/credits';
 import { deleteOutputObject, deleteStagedObject } from '@/lib/compress/staging';
 import { db } from '@/lib/db';
 import {
@@ -268,15 +277,52 @@ export async function syncJob(job: CompressionJob): Promise<JobWithRuntime> {
     patch.completedAt = new Date();
   }
 
+  /**
+   * On the terminal transition this update is also the lock: `providerBilledMinutes`
+   * goes from null to a number exactly once, so whichever poll or webhook wins
+   * the race gets the row back and everyone else gets nothing. Everything that
+   * must happen once per job — usage counting, budget settlement, the credit
+   * true-up below — hangs off that.
+   */
   const [updated] = await db
     .update(jobsSchema)
     .set(patch)
-    .where(eq(jobsSchema.id, job.id))
+    .where(
+      isTerminal && billed !== null
+        ? and(
+            eq(jobsSchema.id, job.id),
+            isNull(jobsSchema.providerBilledMinutes)
+          )
+        : eq(jobsSchema.id, job.id)
+    )
     .returning();
 
   // Count usage once, on the transition into a terminal state.
-  if (isTerminal && billed !== null && job.providerBilledMinutes === null) {
+  if (isTerminal && billed !== null && updated) {
     void recordProviderMinutes(billed, { free: !job.userId });
+
+    /**
+     * Charge what the meter says, not what the model guessed.
+     *
+     * A credit is defined as one conversion minute the provider bills us for,
+     * but until now we only ever charged an *estimate* of that at creation
+     * time and never looked again. The estimate is one draw from a wide
+     * distribution — the same file has been measured at 16.5s and 44.3s of
+     * encode — so the error does not average out in our favour: it is a
+     * one-sided loss on every job that lands on a slow machine. A real one:
+     * a 702 MB / 46-minute file was charged 5 credits and billed 10 minutes.
+     *
+     * So the creation-time charge is a hold (deliberately above the spread,
+     * see PROVIDER_ESTIMATE_HEADROOM) and this settles it:
+     *
+     *   hold > actual  ->  refund the difference (the common case)
+     *   hold < actual  ->  charge the difference, capped at what the balance
+     *                      can pay. Never fail the job over it: the file is
+     *                      already encoded and paid for upstream.
+     */
+    if (updated.userId && status === 'completed') {
+      void settleJobCredits(updated, billed);
+    }
 
     /**
      * Replace the gate's estimate with what actually happened. The estimate
@@ -313,12 +359,27 @@ export async function syncJob(job: CompressionJob): Promise<JobWithRuntime> {
     }
   }
 
+  /**
+   * Losing the terminal race above means no row came back, but the caller
+   * still needs the current state.
+   */
+  const row: CompressionJob =
+    updated ??
+    (
+      await db
+        .select()
+        .from(jobsSchema)
+        .where(eq(jobsSchema.id, job.id))
+        .limit(1)
+    )[0] ??
+    job;
+
   // Refund once, and only if we actually charged something.
   if (
     status === 'failed' &&
-    updated?.userId &&
-    updated.creditsCharged > 0 &&
-    !updated.creditsRefunded
+    row.userId &&
+    row.creditsCharged > 0 &&
+    !row.creditsRefunded
   ) {
     const [claimed] = await db
       .update(jobsSchema)
@@ -331,9 +392,9 @@ export async function syncJob(job: CompressionJob): Promise<JobWithRuntime> {
     if (claimed) {
       try {
         await refundCredits(
-          updated.userId,
-          updated.creditsCharged,
-          `Refund for failed compression ${updated.originalFilename}`
+          row.userId,
+          row.creditsCharged,
+          `Refund for failed compression ${row.originalFilename}`
         );
       } catch (err) {
         console.error('[compress] refund failed', job.id, err);
@@ -345,9 +406,72 @@ export async function syncJob(job: CompressionJob): Promise<JobWithRuntime> {
     }
   }
 
-  const result: JobWithRuntime = updated ?? job;
+  const result: JobWithRuntime = row;
   result.runtime = runtime;
   return result;
+}
+
+/**
+ * True the creation-time hold up to the provider's own meter.
+ *
+ * Runs exactly once per job, behind the `providerBilledMinutes` transition in
+ * syncJob. Failures are logged and swallowed: the file is already encoded and
+ * the upstream minute is already spent, so there is nothing useful to abort.
+ */
+async function settleJobCredits(
+  job: CompressionJob,
+  billedMinutes: number
+): Promise<void> {
+  const userId = job.userId;
+  if (!userId) return;
+
+  const held = job.creditsCharged ?? 0;
+  const actual = Math.max(billedMinutes, MIN_CREDITS_PER_JOB);
+  const delta = actual - held;
+  if (delta === 0) return;
+
+  const label = `${job.originalFilename} (${actual} conversion minute${actual === 1 ? '' : 's'})`;
+
+  try {
+    if (delta < 0) {
+      await refundCredits(userId, -delta, `Compression settled: ${label}`);
+      await db
+        .update(jobsSchema)
+        .set({ creditsCharged: actual })
+        .where(eq(jobsSchema.id, job.id));
+      return;
+    }
+
+    await chargeCredits(userId, delta, `Compression settled: ${label}`);
+    await db
+      .update(jobsSchema)
+      .set({ creditsCharged: actual })
+      .where(eq(jobsSchema.id, job.id));
+  } catch (err) {
+    /**
+     * The balance cannot cover the overrun. Take what is there rather than
+     * nothing — and let the balance be the thing that stops the *next* job,
+     * which is what it is for.
+     */
+    if (err instanceof InsufficientCreditsError && err.available > 0) {
+      try {
+        await chargeCredits(
+          userId,
+          err.available,
+          `Compression settled (partial, balance exhausted): ${label}`
+        );
+        await db
+          .update(jobsSchema)
+          .set({ creditsCharged: held + err.available })
+          .where(eq(jobsSchema.id, job.id));
+        return;
+      } catch (inner) {
+        console.error('[compress] partial settle failed', job.id, inner);
+        return;
+      }
+    }
+    console.error('[compress] credit settle failed', job.id, err);
+  }
 }
 
 export async function findJobForRequester(

@@ -140,7 +140,12 @@ export default function Compressor({
       ? Math.max(0, Math.round((1 - predicted / stats.pendingBytes) * 100))
       : null;
 
-  /** What this batch will cost, shown before the user commits to it. */
+  /**
+   * The hold shown before the user commits. Must be computed from exactly the
+   * same inputs as the server's, or the number on the button is not the number
+   * that gets deducted. Whatever the job does not use is refunded when the
+   * provider's meter comes back (lib/compress/service.ts).
+   */
   const creditCost = useMemo(() => {
     if (!context?.signedIn || !pendingItems.length) return 0;
     return pendingItems.reduce(
@@ -150,10 +155,18 @@ export default function Compressor({
           durationSeconds: item.durationSeconds,
           fileSizeBytes: item.size,
           codec: settings.codec,
+          speed: settings.speed,
+          heightPx: item.height,
+          outputBytes: estimateOutputBytes(settings, {
+            sizeBytes: item.size,
+            durationSeconds: item.durationSeconds,
+            width: item.width,
+            height: item.height,
+          }),
         }),
       0
     );
-  }, [context?.signedIn, pendingItems, settings.codec]);
+  }, [context?.signedIn, pendingItems, settings]);
 
   const notEnoughCredits =
     !!context?.signedIn && creditCost > 0 && creditCost > context.credits;
@@ -361,7 +374,10 @@ export default function Compressor({
                       {context?.signedIn ? (
                         <>
                           <Coins className="h-3.5 w-3.5" />
-                          <span className="tabular-nums">
+                          <span
+                            className="tabular-nums"
+                            title={t('queue.costNote')}
+                          >
                             {t('queue.costCredits', { count: creditCost })}
                           </span>
                         </>
@@ -372,6 +388,15 @@ export default function Compressor({
                         </>
                       )}
                     </div>
+                  )}
+
+                  {/* The number above is a hold, not a price. Saying so here
+                      costs one line and prevents the "why did it take 11 and
+                      give 3 back" support thread. */}
+                  {!stats.busy && context?.signedIn && creditCost > 0 && (
+                    <p className="w-full text-[11px] text-muted-foreground/80">
+                      {t('queue.costNote')}
+                    </p>
                   )}
 
                   <Button

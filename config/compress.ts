@@ -164,6 +164,47 @@ export function isProviderCapped(tier: PlanTier): boolean {
 export const PROVIDER_JOB_OVERHEAD_SECONDS = 6.1;
 export const PROVIDER_SECONDS_PER_SOURCE_SECOND = 0.1191;
 
+/**
+ * The fit above was measured on generated test footage (testsrc2 + a sine
+ * tone). Real files cost more: the encoder has actual detail and grain to
+ * describe, and the decoder has a real stream to read.
+ *
+ * Measured on real user jobs, all 720p at speed=faster, cost per second of
+ * source video (scripts/fc-real-job-costs.jsonl):
+ *
+ *   8.5 min,  54 MB, 0.86 Mbps -> 0.041 s/s   (mean of 3 runs)
+ *   80  min, 363 MB, 0.60 Mbps -> 0.064 s/s
+ *   46  min, 702 MB, 2.12 Mbps -> 0.139 s/s
+ *
+ * The model above predicts 0.048 s/s for all three. So real content runs
+ * 0.85x to 2.9x the synthetic fit, median 1.33x. That is the factor below.
+ *
+ * The spread is not modelling error to be tuned away: the same file at the
+ * same settings has been measured at 16.5s and 45s depending on which machine
+ * the provider picks. Which is why credits are settled against the provider's
+ * own meter when the job finishes (lib/compress/service.ts) instead of trusting
+ * this number.
+ */
+export const PROVIDER_REAL_CONTENT_FACTOR = 1.35;
+
+/**
+ * Extra headroom applied when the number is used to *charge* rather than to
+ * predict. Puts the estimate near the top of the observed spread, so a job is
+ * held against enough credits and the free pool is never short. Anything not
+ * used comes back to the user at settlement.
+ */
+export const PROVIDER_ESTIMATE_HEADROOM = 1.5;
+
+/**
+ * Export writes the finished file into our bucket, so it scales with the
+ * output, and it is not the free task the old model assumed.
+ *
+ * Measured (output size -> export seconds): 337 MB -> 61.1s, 178 MB -> 18.2s,
+ * 178 MB -> 11.6s, 178 MB -> 6.6s, 25 MB -> 0.2-1.5s. The 337 MB one cost two
+ * billed minutes on its own while the model charged one.
+ */
+export const PROVIDER_EXPORT_MBPS = 6;
+
 /** Measured: libx265 is 3.77x slower than libx264 at the same resolution. */
 export const PROVIDER_CODEC_FACTOR: Record<string, number> = {
   libx264: 1,
@@ -253,9 +294,16 @@ export function estimateProviderMinutes(input: {
   speed?: string;
   /** Source height when the browser read it; beats inferring from bitrate. */
   heightPx?: number | null;
+  /** Predicted output size, for the export leg. Defaults to 60% of the input. */
+  outputBytes?: number | null;
   /** false when the browser uploads to the provider directly (slow uplink) */
   staged?: boolean;
   uplinkMBps?: number;
+  /**
+   * True when the result decides money or capacity rather than a progress bar:
+   * adds PROVIDER_ESTIMATE_HEADROOM so the hold sits above the spread.
+   */
+  conservative?: boolean;
 }): number {
   const seconds =
     input.durationSeconds && input.durationSeconds > 0
@@ -274,8 +322,10 @@ export function estimateProviderMinutes(input: {
     (PROVIDER_SPEED_FACTOR[input.speed ?? 'medium'] ?? 1);
 
   const compressSeconds =
-    PROVIDER_JOB_OVERHEAD_SECONDS +
-    PROVIDER_SECONDS_PER_SOURCE_SECOND * factor * seconds;
+    (PROVIDER_JOB_OVERHEAD_SECONDS +
+      PROVIDER_SECONDS_PER_SOURCE_SECOND * factor * seconds) *
+    PROVIDER_REAL_CONTENT_FACTOR *
+    (input.conservative ? PROVIDER_ESTIMATE_HEADROOM : 1);
 
   // Staged jobs are pulled from our CDN at ~30 MB/s; direct uploads are
   // metered at the visitor's uplink, which we cannot see — assume a pessimistic
@@ -284,10 +334,13 @@ export function estimateProviderMinutes(input: {
     input.uplinkMBps ?? (input.staged === false ? 3 : PROVIDER_IMPORT_MBPS);
   const importSeconds = input.fileSizeBytes / (mbps * 1024 * 1024);
 
+  const outputBytes = input.outputBytes ?? input.fileSizeBytes * 0.6;
+  const exportSeconds = outputBytes / (PROVIDER_EXPORT_MBPS * 1024 * 1024);
+
   return (
-    billedMinutes(importSeconds) + // import
-    billedMinutes(compressSeconds) + // compress
-    1 // export/url, always sub-second, always billed a full minute
+    billedMinutes(importSeconds) +
+    billedMinutes(compressSeconds) +
+    billedMinutes(exportSeconds)
   );
 }
 
@@ -353,6 +406,7 @@ export function estimateCredits(input: {
   codec: string;
   speed?: string;
   heightPx?: number | null;
+  outputBytes?: number | null;
 }): number {
   return Math.max(
     MIN_CREDITS_PER_JOB,
@@ -362,7 +416,9 @@ export function estimateCredits(input: {
       codec: input.codec,
       speed: input.speed,
       heightPx: input.heightPx ?? null,
+      outputBytes: input.outputBytes ?? null,
       staged: true,
+      conservative: true,
     })
   );
 }

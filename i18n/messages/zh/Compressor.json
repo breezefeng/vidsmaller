@@ -114,7 +114,8 @@
       "useResolution": "改成 {label} · {kbps} kbps",
       "screenNote": "屏幕录制是例外——它在低得多的码率下依然能看。"
     },
-    "costCredits": "{count, plural, =0 {免费} other {# 积分}}",
+    "costCredits": "{count, plural, =0 {免费} other {≈ # 积分}}",
+    "costNote": "先预扣 · 任务结束后按实际用量退还差额",
     "costFree": "免费 · 无需注册",
     "saved": "已省下 <hl>{amount}</hl>",
     "remove": "移除",
