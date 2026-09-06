@@ -1,6 +1,8 @@
 import { listPublishedPostsAction } from "@/actions/posts/posts";
 import { getViewCountAction } from "@/actions/posts/views";
 import { ContentRestrictionMessage } from "@/components/cms/ContentRestrictionMessage";
+import { ArticleJsonLd, BreadcrumbJsonLd, FaqJsonLd } from "@/components/seo/JsonLd";
+import { extractFaq } from "@/lib/cms/extract-faq";
 import { POST_CONFIGS } from "@/components/cms/post-config";
 import { PostCard } from "@/components/cms/PostCard";
 import { RelatedPosts } from "@/components/cms/RelatedPosts";
@@ -163,8 +165,40 @@ export default async function BlogPage({ params }: { params: Params }) {
       ? await renderPostMarkdown(post.content)
       : "";
 
+  // Only when the FAQ is actually on the page. Behind a paywall or a login
+  // wall the questions are not visible, and marking up content the visitor
+  // cannot see is how a site loses rich results everywhere at once.
+  const faq = showRestrictionMessageInsteadOfContent
+    ? []
+    : extractFaq(post.content || "");
+
   return (
     <div className="container mx-auto px-4 py-12">
+      {/* Was missing entirely: a post had no Article markup at all, so nothing
+          told a crawler who wrote it or when. */}
+      <ArticleJsonLd
+        locale={locale as Locale}
+        title={post.title}
+        description={post.description || ""}
+        slug={slug}
+        publishedAt={new Date(post.publishedAt)}
+        modifiedAt={post.metadata?.updatedAt ? new Date(post.metadata.updatedAt) : null}
+        image={post.featuredImageUrl || null}
+      />
+      <BreadcrumbJsonLd
+        locale={locale as Locale}
+        items={[
+          { name: "Blog", path: "/blog" },
+          { name: post.title, path: `/blog/${slug.replace(/^\//, "")}` },
+        ]}
+      />
+      {faq.length > 0 && (
+        <FaqJsonLd
+          locale={locale as Locale}
+          items={faq}
+          path={`/blog/${slug.replace(/^\//, "")}`}
+        />
+      )}
       <ViewCounter
         slug={slug}
         postType="blog"

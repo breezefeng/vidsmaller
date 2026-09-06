@@ -1,0 +1,256 @@
+---
+title: "CRF Explained: What Number Should You Actually Use?"
+description: "We encoded three kinds of footage at six CRF values and measured VMAF on every one. The right CRF depends on what you shot, and here is the data that shows by how much."
+slug: /crf-explained-what-number-to-use
+tags: crf,h264,video-compression,bitrate,vmaf
+publishedAt: 2026-09-06
+status: published
+isPinned: false
+---
+
+Open the advanced settings of any video compressor and you will find a slider
+labelled CRF, running from about 18 to 32, with no indication of what happens
+if you move it. Every guide online tells you "23 is a good default". Some say
+18 is visually lossless. None of them tell you that the answer depends almost
+entirely on what you filmed.
+
+So we measured it. Three kinds of source footage, six CRF values each,
+eighteen encodes, with VMAF scored against the original every time.
+
+## Quick takeaways
+
+- **CRF is a quality target, not a size target.** You are telling the encoder
+  how much to throw away, and the file lands wherever it lands.
+- **Lower CRF = better quality and a bigger file.** The scale is inverted from
+  what most people expect on first contact.
+- **23 is a reasonable default**, and that is roughly where our measurements
+  put the knee of the curve for camera footage.
+- **What you filmed matters more than the number you pick.** At CRF 32 a screen
+  recording still scored VMAF 89.9 at 0.79 MB; camera footage at the same
+  setting fell to 74.4 and was three times larger.
+- **Screen recordings are the outlier.** They compress so well that aggressive
+  settings which would destroy camera footage barely touch them.
+- If you need an exact file size rather than a quality level, CRF is the wrong
+  tool — use a target-size mode instead.
+
+## What CRF actually is
+
+CRF stands for Constant Rate Factor. It is the quality mode of the x264 and
+x265 encoders, and it works by giving the encoder a quality target and letting
+the bitrate float.
+
+That is the opposite of how most people think about compression. With a bitrate
+target you say "use 5 Mbps" and quality varies — easy scenes waste bits, hard
+scenes fall apart. With CRF you say "hold this much quality" and the encoder
+spends whatever each scene needs: few bits on a static shot, many on a fast pan.
+
+The practical consequence is the thing that surprises people:
+
+> **With CRF you cannot know the output size in advance.** Two ten-second clips
+> at the same CRF can differ by a factor of ten, and they did in our tests.
+
+The scale runs 0 to 51. Lower is better quality and a bigger file. 0 is
+mathematically lossless and produces files larger than the original. 51 is
+unusable. Everything anyone actually uses lives between 18 and 32.
+
+## The measurements
+
+Three 1080p clips, one from each of the categories people actually compress:
+
+| Class | Source | Why it is here |
+| --- | --- | --- |
+| Camera footage | Jellyfish 1080p (open test clip) | Fine detail, constant motion, natural noise — the hardest case |
+| Animation | Big Buck Bunny 1080p (open test clip) | Flat colour areas, clean edges, synthetic motion |
+| Screen recording | A capture of this site, scrolling | Text, sharp edges, large areas that do not change between frames |
+
+Each was encoded with libx264 at preset medium, video only, at six CRF values,
+and scored with VMAF against the original. VMAF is Netflix's perceptual quality
+metric; the industry generally treats around 93 as the point where most viewers
+stop noticing the difference on a normal screen.
+
+### Screen recording
+
+| CRF | Size | VMAF |
+| --- | --- | --- |
+| 18 | 2.09 MB | 96.74 |
+| 20 | 1.80 MB | 96.19 |
+| 23 | 1.48 MB | 95.49 |
+| 26 | 1.21 MB | 94.16 |
+| 28 | 1.06 MB | 93.23 |
+| 32 | 0.79 MB | 89.88 |
+
+### Animation
+
+| CRF | Size | VMAF |
+| --- | --- | --- |
+| 18 | 15.52 MB | 96.02 |
+| 20 | 11.38 MB | 95.10 |
+| 23 | 7.12 MB | 93.30 |
+| 26 | 4.52 MB | 90.51 |
+| 28 | 3.39 MB | 87.85 |
+| 32 | 1.96 MB | 79.67 |
+
+### Camera footage
+
+| CRF | Size | VMAF |
+| --- | --- | --- |
+| 18 | 12.74 MB | 97.18 |
+| 20 | 9.86 MB | 95.60 |
+| 23 | 6.81 MB | 92.48 |
+| 26 | 4.76 MB | 88.15 |
+| 28 | 3.77 MB | 84.36 |
+| 32 | 2.43 MB | 74.38 |
+
+All three clips are ten seconds long and 1080p, so the sizes are directly
+comparable.
+
+## What the numbers say
+
+### The spread between content types dwarfs the spread between CRF values
+
+Look at the extremes. The screen recording at its *worst* setting — CRF 32,
+0.79 MB — still scored 89.88. The camera footage at its *best* setting — CRF 18,
+12.74 MB — scored 97.18. Sixteen times the file size bought 7.3 VMAF points.
+
+Meanwhile, moving the camera footage from CRF 18 to CRF 32 cost 22.8 points.
+
+The lesson is not "pick a lower CRF". It is that a single recommended number
+cannot be right for both a screen capture and a handheld shot, and any guide
+that gives you one without asking what you filmed is guessing.
+
+### Screen recordings barely degrade
+
+Across the entire 18-to-32 range, the screen recording lost 6.86 VMAF points
+and shrank by a factor of 2.6. The camera footage lost 22.8 points and shrank
+by 5.2.
+
+This is why screen recordings routinely drop 70–90% with no visible change,
+while footage from a phone camera hits a wall much earlier. Screen content is
+mostly flat colour and mostly static between frames — an encoder can describe
+"this region is identical to the last frame" in almost no bits at all. A moving
+scene with natural sensor noise has genuinely new information in every frame.
+
+If you record tutorials, demos or meetings, you have far more room than the
+generic advice assumes. Try 28 before you try 23.
+
+### CRF 23 sits right at the knee for camera footage
+
+Camera footage crosses below VMAF 93 between CRF 20 and CRF 23. The default
+that everyone repeats turns out to be roughly the last setting where the
+hardest content type still looks close to transparent. That is not a
+coincidence — it is why the default became the default.
+
+Above 23 the losses accelerate. Camera footage gives up 4.3 points between 23
+and 26, then another 3.8 to 28, then 10 more to 32. The curve steepens; the
+savings do not.
+
+### Diminishing returns below 20
+
+Going from CRF 20 to CRF 18 cost the camera clip 2.9 MB — a 29% larger file —
+for 1.58 VMAF points, in a region where nobody was going to notice. Unless you
+are producing a master for further editing, there is very little reason to go
+below 20.
+
+## So what should you use?
+
+| If you are compressing | Start at | Notes |
+| --- | --- | --- |
+| Screen recording, tutorial, demo | **28** | Text stays crisp far longer than you expect |
+| Animation, motion graphics | **23** | Flat areas compress well, but gradients band if you push it |
+| Camera footage, phone video | **23** | The knee of the curve; go to 26 if size matters more than detail |
+| Anything with heavy grain or noise | **20** | Noise is expensive to encode and ugly when it breaks up |
+| A master you will edit again | **18** | Or do not use CRF at all — keep the original |
+
+And the honest version: start at 23, look at the result, and adjust. Two minutes
+of looking beats any table, including this one.
+
+## When CRF is the wrong tool entirely
+
+CRF cannot hit a file size. If your problem is "this has to be under 20 MB for
+Discord" or "under 18 MB to survive Gmail's attachment encoding", CRF will get
+you there only by trial and error.
+
+Use a target-size mode instead. It encodes two-pass: the first pass measures
+how hard the content is, the second spends exactly the budget available. That
+is the right tool when a hard ceiling exists, and we built dedicated pages
+around the common ones:
+
+- [Compress video for Discord](/compress-video-for-discord) — 20 MB free, 50 MB Nitro Basic
+- [Compress video for email](/compress-video-for-email) — Gmail says 25 MB and means about 18
+- [Compress video for WhatsApp](/compress-video-for-whatsapp) — 16 MB in chat, 2 GB as a document
+- [Compress video for TikTok](/compress-video-for-tiktok) — 72 MB from the Android app
+
+## A note on what this data does and does not cover
+
+We would rather state the limits than let you assume they are not there.
+
+- **One clip per category.** Enough to show the three classes sit in completely
+  different places on the curve. Not enough to quote a tolerance on any single
+  number — your footage will differ.
+- **H.264 only.** No H.265 sweep, so nothing here says how the roughly
+  30%-smaller figure for H.265 behaves across CRF.
+- **Ten-second 1080p clips**, encoded locally with libx264 at preset medium,
+  video only. Audio was excluded so the sizes are pure video bitrate.
+- **Encoded locally, not through our production pipeline.** The CRF curve is a
+  property of the encoder, and we hand the encoder the same numbers — but this
+  is a faithful proxy for our output, not a recording of it.
+
+The underlying figures are on our [homepage](/#formats) as a chart, and the
+measurement script is in our repository.
+
+If you want the wider picture rather than just this one setting — resolution,
+duration and codec all move the file size more than CRF does in some cases —
+[how to compress a video without losing quality](/blog/how-to-compress-a-video-without-losing-quality)
+covers the whole set of levers.
+
+## FAQ
+
+### What is the best CRF value for H.264?
+
+There is no single best value, which is the whole point of the data above. 23
+is the conventional default and sits close to the knee of the curve for camera
+footage. Screen recordings tolerate 28 comfortably. Grainy footage wants 20.
+Below 18 you are paying a lot of bytes for quality nobody can see.
+
+### Is CRF 18 visually lossless?
+
+Close, but not literally. In our camera test CRF 18 scored VMAF 97.18, not 100.
+"Visually lossless" is a claim about perception rather than data, and at 18 the
+loss is genuinely hard to see on normal playback. It is not lossless in the
+mathematical sense — that would be CRF 0, which produces a file larger than the
+original.
+
+### Does a lower CRF always mean a bigger file?
+
+Yes, holding everything else constant. Lower CRF tells the encoder to discard
+less, and discarding less costs bits. What varies is *how much* bigger: the
+same two-step change cost our camera clip 2.9 MB and our screen recording
+0.29 MB.
+
+### Why did my file get bigger after compressing?
+
+Usually because the source was already compressed harder than the CRF you
+asked for. If a clip arrives at an effective quality equivalent to CRF 30 and
+you re-encode it at 18, you are asking the encoder to preserve detail that is
+no longer there — and it will spend bits doing exactly that. Check the source
+bitrate before choosing a setting.
+
+### CRF or target size — which should I use?
+
+Target size when a hard ceiling exists: an upload limit, an attachment cap, a
+storage budget. CRF when you care about how it looks and the size can land
+wherever it lands. Using CRF to chase a number means guessing, encoding,
+measuring and guessing again.
+
+### Does CRF work the same way in H.265?
+
+The scale exists but the numbers do not transfer. H.265 at CRF 28 is roughly
+comparable to H.264 at CRF 23, so copying a value across encoders will give you
+a much smaller and softer file than you expected. H.265 also encodes roughly
+3.8x slower, and older devices and some browsers will refuse to play it — which
+matters if the file is going to someone else.
+
+---
+
+Want to skip the settings entirely? [Compress a video](/) with a preset, or
+pick a [target size](/compress-video-for-discord) if you have a limit to clear.
