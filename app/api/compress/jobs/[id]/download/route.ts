@@ -1,6 +1,7 @@
 import { apiResponse } from '@/lib/api-response';
 import { resolveRequester } from '@/lib/compress/quota';
 import { findJobForRequester, syncJob } from '@/lib/compress/service';
+import { createOutputDownloadUrl } from '@/lib/compress/staging';
 
 export const runtime = 'nodejs';
 
@@ -41,7 +42,18 @@ export async function GET(req: Request, { params }: Params) {
     return apiResponse.error('Download link has expired', 410);
   }
 
-  // Ownership has been verified above; hand the transfer to the provider.
+  // Ownership has been verified above; hand the transfer to whoever holds the
+  // bytes. `r2:<key>` means the provider wrote straight into our bucket and we
+  // sign a short-lived URL; anything else is a legacy provider URL.
+  if (synced.downloadUrl.startsWith('r2:')) {
+    const key = synced.downloadUrl.slice(3);
+    const signed = await createOutputDownloadUrl({
+      key,
+      filename: synced.outputFilename,
+    });
+    return Response.redirect(signed, 302);
+  }
+
   if (!PROXY_DOWNLOADS) {
     return Response.redirect(synced.downloadUrl, 302);
   }
