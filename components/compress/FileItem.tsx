@@ -7,7 +7,8 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { formatBytes, formatDuration } from '@/lib/compress/client';
 import { estimateOutputBytes } from '@/lib/compress/estimate';
-import type { CompressSettings } from '@/lib/freeconvert/presets';
+import { analyzeHeadroom } from '@/lib/compress/headroom';
+import { QUICK_PRESETS, type CompressSettings } from '@/lib/freeconvert/presets';
 import { cn } from '@/lib/utils';
 import {
   AlertCircle,
@@ -31,6 +32,8 @@ interface Props {
   onRemove: (key: string) => void;
   onRetry: (key: string) => void;
   onCancel: (key: string) => void;
+  /** Apply the gentler setting the headroom notice offers. */
+  onApplySettings?: (patch: Partial<CompressSettings>) => void;
 }
 
 export default function FileItem({
@@ -40,6 +43,7 @@ export default function FileItem({
   onRemove,
   onRetry,
   onCancel,
+  onApplySettings,
 }: Props) {
   const t = useTranslations('Compressor.queue');
 
@@ -89,15 +93,23 @@ export default function FileItem({
   })();
 
   // Only meaningful before the real number arrives.
+  const source = {
+    sizeBytes: item.size,
+    durationSeconds: item.durationSeconds,
+    width: item.width,
+    height: item.height,
+  };
+
   const predicted =
-    item.phase === 'ready'
-      ? estimateOutputBytes(settings, {
-          sizeBytes: item.size,
-          durationSeconds: item.durationSeconds,
-          width: item.width,
-          height: item.height,
-        })
-      : null;
+    item.phase === 'ready' ? estimateOutputBytes(settings, source) : null;
+
+  /**
+   * Whether this particular file still has bitrate to give. A percentage
+   * preset says nothing about that, and on an already-compressed file it is
+   * the difference between a free win and an unwatchable result.
+   */
+  const headroom =
+    item.phase === 'ready' ? analyzeHeadroom(settings, source) : null;
 
   return (
     <div
@@ -198,6 +210,67 @@ export default function FileItem({
                 ),
               })}
             </p>
+          )}
+
+          {headroom?.level === 'over' && (
+            <div className="mt-2 rounded-lg border border-amber-500/40 bg-amber-500/5 p-2.5">
+              <p className="text-xs font-medium text-amber-700 dark:text-amber-500">
+                {t('headroom.title')}
+              </p>
+              <p className="mt-0.5 text-[11px] leading-relaxed text-muted-foreground">
+                {headroom.outputKbps <= 0
+                  ? t('headroom.bodyImpossible', {
+                      source: headroom.sourceKbps,
+                      tier: headroom.tier.label,
+                    })
+                  : t('headroom.body', {
+                      source: headroom.sourceKbps,
+                      tier: headroom.tier.label,
+                      output: headroom.outputKbps,
+                      outputTier: headroom.outputTier.label,
+                      floor: headroom.outputTier.ok,
+                    })}
+              </p>
+
+              {headroom.suggestion && onApplySettings && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="mt-2 h-7 text-[11px]"
+                  onClick={() =>
+                    onApplySettings(
+                      headroom.suggestion!.kind === 'preset'
+                        ? { mode: 'preset', preset: headroom.suggestion!.preset }
+                        : {
+                            mode: 'resolution',
+                            resolution: headroom.suggestion!
+                              .resolution as CompressSettings['resolution'],
+                          }
+                    )
+                  }
+                >
+                  {headroom.suggestion.kind === 'resolution'
+                    ? t('headroom.useResolution', {
+                        label: headroom.suggestion.label,
+                        kbps: headroom.suggestion.outputKbps,
+                      })
+                    : t(
+                        headroom.suggestion.clearsFloor
+                          ? 'headroom.usePreset'
+                          : 'headroom.usePresetSoft',
+                        {
+                          preset:
+                            QUICK_PRESETS[headroom.suggestion.preset].label,
+                          kbps: headroom.suggestion.outputKbps,
+                        }
+                      )}
+                </Button>
+              )}
+
+              <p className="mt-1.5 text-[10px] leading-relaxed text-muted-foreground/70">
+                {t('headroom.screenNote')}
+              </p>
+            </div>
           )}
 
           {item.phase === 'canceled' && (

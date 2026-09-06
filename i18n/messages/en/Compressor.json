@@ -105,6 +105,15 @@
     "cancel": "Cancel",
     "willBe": "Estimated result: <hl>{size}</hl>",
     "willProduce": "≈ <hl>{size}</hl> · −{percent}%",
+    "headroom": {
+      "title": "Not much left to compress",
+      "body": "This file is already efficiently encoded: {source} kbps at {tier}. This setting would leave {output} kbps, under the {floor} kbps {outputTier} usually wants.",
+      "bodyImpossible": "This file is already efficiently encoded: {source} kbps at {tier}. At this target the audio alone uses the whole budget — there is nothing left for the picture.",
+      "usePreset": "Use {preset} instead · {kbps} kbps",
+      "usePresetSoft": "Use {preset} to lose less · {kbps} kbps",
+      "useResolution": "Drop to {label} instead · {kbps} kbps",
+      "screenNote": "Screen recordings are the exception — they stay watchable far lower."
+    },
     "costCredits": "{count, plural, =0 {Free} one {# credit} other {# credits}}",
     "costFree": "Free · no sign-up",
     "saved": "Saved <hl>{amount}</hl>",

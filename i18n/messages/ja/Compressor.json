@@ -105,6 +105,15 @@
     "cancel": "キャンセル",
     "willBe": "予想サイズ：<hl>{size}</hl>",
     "willProduce": "約 <hl>{size}</hl> · −{percent}%",
+    "headroom": {
+      "title": "これ以上圧縮する余地がほとんどありません",
+      "body": "元ファイルがすでに効率よく圧縮されています：{tier} で {source} kbps。この設定では {output} kbps しか残らず、{outputTier} に必要な {floor} kbps を下回ります。",
+      "bodyImpossible": "元ファイルがすでに効率よく圧縮されています：{tier} で {source} kbps。この目標サイズでは音声だけで容量を使い切り、映像に回すビットレートが残りません。",
+      "usePreset": "{preset} に変更 · {kbps} kbps",
+      "usePresetSoft": "{preset} で劣化を抑える · {kbps} kbps",
+      "useResolution": "{label} に落とす · {kbps} kbps",
+      "screenNote": "画面録画は例外で、はるかに低いビットレートでも視聴に耐えます。"
+    },
     "costCredits": "{count, plural, =0 {無料} other {# クレジット}}",
     "costFree": "無料 · 登録不要",
     "saved": "削減 <hl>{amount}</hl>",

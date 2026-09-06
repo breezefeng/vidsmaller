@@ -93,6 +93,19 @@ export default function Compressor({
     if (empty) hadItems.current = false;
   }, [empty]);
 
+  /**
+   * Applied from the headroom notice on a file card. Settings are per batch,
+   * not per file, which is right here: the notice fires on the file that has
+   * no bitrate left, and the gentler setting should cover everything queued
+   * behind it too.
+   */
+  const applySettingsPatch = useCallback(
+    (patch: Partial<CompressSettings>) => {
+      setSettings((prev) => ({ ...prev, ...patch }));
+    },
+    [setSettings]
+  );
+
   /** The file the settings preview is about: the first thing we would run. */
   const previewItem = pendingItems[0] ?? items[0] ?? null;
 
@@ -228,6 +241,7 @@ export default function Compressor({
                   onRemove={removeItem}
                   onRetry={retryItem}
                   onCancel={cancelItem}
+                  onApplySettings={applySettingsPatch}
                 />
               ))}
             </div>
