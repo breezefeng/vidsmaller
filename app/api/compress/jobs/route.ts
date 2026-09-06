@@ -51,6 +51,13 @@ const bodySchema = z.object({
   filename: z.string().min(1).max(255),
   fileSize: z.number().int().positive(),
   durationSeconds: z.number().nonnegative().max(60 * 60 * 24).nullish(),
+  /**
+   * Frame size the browser read off the file. Only used to predict how long
+   * the encode will take (lib/compress/eta.ts) — the encoder is told nothing
+   * about it — so it stays optional and a wrong value costs an ETA, not a job.
+   */
+  sourceWidth: z.number().int().positive().max(16384).nullish(),
+  sourceHeight: z.number().int().positive().max(16384).nullish(),
   settings: compressSettingsSchema,
   /**
    * Set only by the fallback flow: the object the browser already staged in
@@ -75,8 +82,15 @@ export async function POST(req: Request) {
     );
   }
 
-  const { filename, fileSize, durationSeconds, settings, stagingKey } =
-    parsed.data;
+  const {
+    filename,
+    fileSize,
+    durationSeconds,
+    sourceWidth,
+    sourceHeight,
+    settings,
+    stagingKey,
+  } = parsed.data;
 
   const requester = await resolveRequester(req);
   const { limits, tier } = requester;
@@ -145,6 +159,8 @@ export async function POST(req: Request) {
     durationSeconds: durationSeconds ?? null,
     fileSizeBytes: fileSize,
     codec: settings.codec,
+    speed: settings.speed,
+    heightPx: sourceHeight ?? null,
     // Direct uploads are metered at the visitor's uplink and cost far more.
     staged: Boolean(stagingKey),
   });
@@ -189,6 +205,8 @@ export async function POST(req: Request) {
         durationSeconds: durationSeconds ?? null,
         fileSizeBytes: fileSize,
         codec: settings.codec,
+        speed: settings.speed,
+        heightPx: sourceHeight ?? null,
       })
     : 0;
 
@@ -330,6 +348,8 @@ export async function POST(req: Request) {
           : null,
       settings: {
         ...settings,
+        sourceWidth: sourceWidth ?? null,
+        sourceHeight: sourceHeight ?? null,
         stagingKey: stagingKey ?? null,
         outputKey,
         estimatedProviderMinutes: Math.round(providerMinutes * 1000) / 1000,

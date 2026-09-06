@@ -1,6 +1,7 @@
 'use client';
 
 import type { CompressItem } from '@/components/compress/useCompressor';
+import { useLiveProgress } from '@/components/compress/useLiveProgress';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
@@ -47,14 +48,45 @@ export default function FileItem({
     item.phase === 'uploading' ||
     item.phase === 'processing';
 
+  // Server-side work has no provider percentage behind it, so it is animated
+  // locally from the stage clock instead of stepping once per poll.
+  const live = useLiveProgress(item);
+
   const percent =
     item.phase === 'uploading'
       ? item.uploadPercent
       : item.phase === 'processing'
-        ? Math.max(item.processPercent, 5)
+        ? Math.max(live.percent, 5)
         : item.phase === 'done'
           ? 100
           : 0;
+
+  const etaLabel = (() => {
+    if (item.phase !== 'processing') return null;
+    const eta = live.etaSeconds;
+    if (eta === null) return t('progress.finishing');
+    if (eta < 60) {
+      return t('progress.eta', {
+        time: t('progress.etaSeconds', { count: Math.max(5, Math.round(eta / 5) * 5) }),
+      });
+    }
+    return t('progress.eta', {
+      time: t('progress.etaMinutes', { count: Math.max(1, Math.round(eta / 60)) }),
+    });
+  })();
+
+  const processingLabel = (() => {
+    switch (item.stage) {
+      case 'queued':
+        return t('progress.queued', { percent });
+      case 'importing':
+        return t('progress.importing', { percent });
+      case 'exporting':
+        return t('progress.exporting', { percent });
+      default:
+        return t('progress.processing', { percent });
+    }
+  })();
 
   // Only meaningful before the real number arrives.
   const predicted =
@@ -182,9 +214,9 @@ export default function FileItem({
                   ? t('progress.uploading', { percent: item.uploadPercent })
                   : item.phase === 'creating'
                     ? t('progress.creating')
-                    : t('progress.processing', {
-                        percent: item.processPercent,
-                      })}
+                    : etaLabel
+                      ? `${processingLabel} · ${etaLabel}`
+                      : processingLabel}
               </p>
             </div>
           )}

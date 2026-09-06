@@ -174,9 +174,47 @@ export const PROVIDER_CODEC_FACTOR: Record<string, number> = {
 };
 
 /**
- * Encode cost tracks pixel count. We cannot see the resolution server-side,
- * so infer it from bitrate — good enough to keep the budget honest.
+ * x264 preset multipliers, applied to the per-second term.
+ *
+ * Measured on the provider, same 8.5-minute 720p file three times
+ * (scripts/fc-speed-preset-results.jsonl, 2026-09-06):
+ *
+ *   medium 61.7s · fast 43.2s (0.70x) · faster 27.3s (0.44x)
+ *
+ * veryfast and slow have never been run upstream; those two are extrapolated
+ * from x264's own ladder and marked as such.
+ */
+export const PROVIDER_SPEED_FACTOR: Record<string, number> = {
+  veryfast: 0.3, // extrapolated
+  faster: 0.44,
+  fast: 0.7,
+  medium: 1,
+  slow: 1.7, // extrapolated
+};
+
+/**
+ * Encode cost tracks pixel count — but far less than pixel count alone would
+ * suggest, because the pipeline is not purely encode-bound.
+ *
+ * Measured against the 1080p anchor above, same provider, same day: a 720p
+ * source of 507.6s took 61.7s at speed=medium, i.e.
+ *
+ *   (61.7 - 6.1) / (0.1191 x 507.6) = 0.92
+ *
  * (4K factor 3.85x verified locally with the same encoder + settings.)
+ */
+export function providerHeightFactor(height: number): number {
+  if (height >= 2160) return 3.85;
+  if (height >= 1440) return 1.78;
+  if (height >= 1080) return 1;
+  return 0.92;
+}
+
+/**
+ * Fallback for when the browser could not tell us the frame size: infer it
+ * from bitrate. Deliberately kept, but only as a fallback — it reads a
+ * low-bitrate 720p rip as "cheap" and under-reserves the pool by ~2x, which
+ * is exactly the kind of file people bring to a video compressor.
  */
 export function providerResolutionFactor(bitrateMbps: number): number {
   if (bitrateMbps >= 20) return 3.85; // 4K
@@ -211,6 +249,10 @@ export function estimateProviderMinutes(input: {
   durationSeconds?: number | null;
   fileSizeBytes: number;
   codec: string;
+  /** x264 preset. Changes the encode time by up to 2.3x. */
+  speed?: string;
+  /** Source height when the browser read it; beats inferring from bitrate. */
+  heightPx?: number | null;
   /** false when the browser uploads to the provider directly (slow uplink) */
   staged?: boolean;
   uplinkMBps?: number;
@@ -225,8 +267,11 @@ export function estimateProviderMinutes(input: {
     seconds > 0 ? (input.fileSizeBytes * 8) / seconds / 1_000_000 : 8;
 
   const factor =
-    providerResolutionFactor(bitrateMbps) *
-    (PROVIDER_CODEC_FACTOR[input.codec] ?? 1);
+    (input.heightPx && input.heightPx > 0
+      ? providerHeightFactor(input.heightPx)
+      : providerResolutionFactor(bitrateMbps)) *
+    (PROVIDER_CODEC_FACTOR[input.codec] ?? 1) *
+    (PROVIDER_SPEED_FACTOR[input.speed ?? 'medium'] ?? 1);
 
   const compressSeconds =
     PROVIDER_JOB_OVERHEAD_SECONDS +
@@ -306,6 +351,8 @@ export function estimateCredits(input: {
   durationSeconds?: number | null;
   fileSizeBytes: number;
   codec: string;
+  speed?: string;
+  heightPx?: number | null;
 }): number {
   return Math.max(
     MIN_CREDITS_PER_JOB,
@@ -313,6 +360,8 @@ export function estimateCredits(input: {
       durationSeconds: input.durationSeconds ?? null,
       fileSizeBytes: input.fileSizeBytes,
       codec: input.codec,
+      speed: input.speed,
+      heightPx: input.heightPx ?? null,
       staged: true,
     })
   );

@@ -14,19 +14,40 @@ import {
   type CompressionStatus,
 } from '@/lib/db/schema';
 import {
-  collectJobError,
-  computeJobProgress,
-  getJob,
-} from '@/lib/freeconvert/client';
-import { TASK_COMPRESS, TASK_EXPORT } from '@/lib/freeconvert/presets';
+  computeProgress,
+  deriveRuntime,
+  type CompressStage,
+  type JobRuntime,
+} from '@/lib/compress/progress';
+import { collectJobError, getJob } from '@/lib/freeconvert/client';
+import {
+  TASK_COMPRESS,
+  TASK_EXPORT,
+  type CompressSettings,
+} from '@/lib/freeconvert/presets';
 import type { FCJob, FCTask } from '@/lib/freeconvert/types';
 import { and, eq, isNull } from 'drizzle-orm';
+
+/**
+ * A row plus whatever the last provider sync could tell us about *where* the
+ * job is. Transient by design: it is worth nothing a second later, so it is
+ * carried on the object instead of being written to the database.
+ */
+export type JobWithRuntime = CompressionJob & { runtime?: JobRuntime | null };
 
 /** Public shape returned to the browser. */
 export interface JobView {
   id: string;
   status: CompressionStatus;
   progress: number;
+  /**
+   * Where the job is and how long that stage should take, so the browser can
+   * animate between polls instead of holding one number for ten minutes.
+   */
+  stage: CompressStage | null;
+  stageElapsedSeconds: number | null;
+  stageEstimateSeconds: number | null;
+  etaSeconds: number | null;
   originalFilename: string;
   outputFilename: string;
   inputSize: number;
@@ -40,7 +61,7 @@ export interface JobView {
   completedAt: string | null;
 }
 
-export function toJobView(job: CompressionJob): JobView {
+export function toJobView(job: JobWithRuntime): JobView {
   const inputSize = Number(job.inputSize ?? 0);
   const outputSize =
     job.outputSize === null || job.outputSize === undefined
@@ -54,10 +75,20 @@ export function toJobView(job: CompressionJob): JobView {
       ? Math.round((savedBytes / inputSize) * 1000) / 10
       : null;
 
+  const runtime = job.runtime ?? null;
+  const live = computeProgress({
+    runtime,
+    fallbackProgress: job.progress,
+  });
+
   return {
     id: job.id,
     status: job.status,
-    progress: job.progress,
+    progress: job.status === 'completed' ? 100 : live.percent,
+    stage: runtime?.stage ?? null,
+    stageElapsedSeconds: runtime?.stageElapsedSeconds ?? null,
+    stageEstimateSeconds: runtime?.stageEstimateSeconds ?? null,
+    etaSeconds: job.status === 'completed' ? 0 : live.etaSeconds,
     originalFilename: job.originalFilename,
     outputFilename: job.outputFilename,
     inputSize,
@@ -133,7 +164,7 @@ function mapProviderStatus(fcJob: FCJob): CompressionStatus {
  * Pull the latest state from FreeConvert and persist it.
  * Refunds credits exactly once when a paid job ends in failure.
  */
-export async function syncJob(job: CompressionJob): Promise<CompressionJob> {
+export async function syncJob(job: CompressionJob): Promise<JobWithRuntime> {
   if (
     job.status === 'completed' ||
     job.status === 'failed' ||
@@ -151,7 +182,26 @@ export async function syncJob(job: CompressionJob): Promise<CompressionJob> {
   }
 
   const status = mapProviderStatus(fcJob);
-  const progress = computeJobProgress(fcJob);
+
+  /**
+   * Where the job is, and how long that stage is predicted to take. This is
+   * what replaced the old status-only percentage: three equally weighted tasks
+   * meant a running compress task always read as exactly 50%, for as long as
+   * the encode took.
+   */
+  const settings = (job.settings ?? {}) as Partial<CompressSettings> & {
+    sourceHeight?: number | null;
+  };
+  const runtime = deriveRuntime(fcJob, {
+    durationSeconds: job.durationSeconds ? Number(job.durationSeconds) : null,
+    inputSizeBytes: job.inputSize ? Number(job.inputSize) : null,
+    height: settings.sourceHeight ?? null,
+    settings,
+  });
+  const { percent: progress } = computeProgress({
+    runtime,
+    fallbackProgress: job.progress,
+  });
 
   const exportTask = fcJob.tasks?.find((t) => t.name === TASK_EXPORT);
   const compressTask = fcJob.tasks?.find((t) => t.name === TASK_COMPRESS);
@@ -295,7 +345,9 @@ export async function syncJob(job: CompressionJob): Promise<CompressionJob> {
     }
   }
 
-  return updated ?? job;
+  const result: JobWithRuntime = updated ?? job;
+  result.runtime = runtime;
+  return result;
 }
 
 export async function findJobForRequester(
