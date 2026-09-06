@@ -24,11 +24,13 @@ export default function MobileMenu() {
   const t = useTranslations("Home");
   const tHeader = useTranslations("Header");
 
-  const headerLinks: HeaderLink[] = tHeader.raw("links");
-  const pricingLink = headerLinks.find((link) => link.id === "pricing");
-  if (pricingLink) {
-    pricingLink.href = process.env.NEXT_PUBLIC_PRICING_PATH || pricingLink.href;
-  }
+  // See HeaderLinks.tsx: `raw()` is a shared reference, so copy before editing.
+  const headerLinks: HeaderLink[] = (tHeader.raw("links") as HeaderLink[]).map(
+    (link) =>
+      link.id === "pricing"
+        ? { ...link, href: process.env.NEXT_PUBLIC_PRICING_PATH || link.href }
+        : link
+  );
 
   return (
     <DropdownMenu>

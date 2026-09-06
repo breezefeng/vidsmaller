@@ -18,11 +18,16 @@ const HeaderLinks = () => {
   const tHeader = useTranslations("Header");
   const pathname = usePathname();
 
-  const headerLinks: HeaderLink[] = tHeader.raw("links");
-  const pricingLink = headerLinks.find((link) => link.id === "pricing");
-  if (pricingLink) {
-    pricingLink.href = process.env.NEXT_PUBLIC_PRICING_PATH!;
-  }
+  // Copy before rewriting the pricing href: `raw()` returns a reference into
+  // the shared message store, not a copy. Assigning the same value on every
+  // render happens to be harmless, but the same pattern in Footer.tsx was
+  // duplicating a whole nav group per request.
+  const headerLinks: HeaderLink[] = (tHeader.raw("links") as HeaderLink[]).map(
+    (link) =>
+      link.id === "pricing"
+        ? { ...link, href: process.env.NEXT_PUBLIC_PRICING_PATH || "/pricing" }
+        : link
+  );
 
   return (
     <NavigationMenu viewport={false} className="hidden lg:block">
