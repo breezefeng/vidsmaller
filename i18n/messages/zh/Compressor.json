@@ -61,7 +61,7 @@
     },
     "targetSize": {
       "label": "目标文件体积（MB）",
-      "hint": "适合 Discord（10 MB）、邮件（25 MB）或 WhatsApp（16 MB）的上限。"
+      "hint": "适合 Discord（20 MB）、邮件（18 MB）或 WhatsApp（16 MB）的上限。"
     },
     "quality": {
       "label": "恒定质量（CRF）",

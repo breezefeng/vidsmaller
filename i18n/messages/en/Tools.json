@@ -1,0 +1,253 @@
+{
+  "meta": {
+    "title": "Compress Video for {platform} — Free, No Watermark, Hits the Limit"
+  },
+  "breadcrumb": "Compress video for {platform}",
+  "h1": "Compress Video for {platform}",
+  "subtitle": "Get under the upload limit on the first try",
+  "limitsTitle": "{platform} file size limits, and what they really mean",
+  "budgetTitle": "What {target} actually buys you",
+  "budgetIntro": "Every other page tells you the limit and stops there. The limit is the easy half. Here is the half that decides whether your video is watchable: at a {target} target, this is exactly how much bitrate is left for each duration, and the largest resolution that bitrate can carry without falling apart.",
+  "howToTitle": "How to compress a video for {prose}",
+  "howToDescription": "Three steps, no account, no watermark. The target size is already set to {target}.",
+  "faqTitle": "{platform} compression FAQs",
+  "steps": {
+    "s1": {
+      "name": "Drop your video in",
+      "text": "MP4, MOV, MKV, AVI, WebM and 20+ other formats. Nothing to install — your browser uploads over a one-time link and the file never touches a third party."
+    },
+    "s2": {
+      "name": "The target is already {target}",
+      "text": "We pre-set it below the hard ceiling on purpose: a two-pass encode lands within a couple of percent, and landing two percent over a hard limit means the upload fails. Change it if you want a different number."
+    },
+    "s3": {
+      "name": "Download and upload",
+      "text": "Encoding runs on our servers, so you can close the tab. The result comes back with no watermark on any plan, in an MP4 that {prose} will accept."
+    }
+  },
+  "limits": {
+    "colTier": "Plan / upload method",
+    "colLimit": "Maximum file size",
+    "verified": "Limits verified {date}. Sources:"
+  },
+  "budget": {
+    "colDuration": "Video length",
+    "colBitrate": "Bitrate left for video",
+    "colResolution": "Resolution it carries",
+    "colVerdict": "Verdict",
+    "verdict": {
+      "good": "Looks fine",
+      "ok": "Watchable",
+      "rough": "Visibly rough",
+      "impossible": "Not realistic"
+    },
+    "method": "Method: the bitrate column is arithmetic — {target} spread across the duration, minus {audio} kbps for stereo audio and 2% for container overhead. It is a hard ceiling, not an estimate. The resolution and verdict columns are a recommendation, derived from published H.264 bitrate ladders and pulled down about a third, because re-encoding footage that has already been compressed once survives lower bitrates than encoding a clean master does. Deliberately conservative — we would rather under-promise than tell you a video will look fine when it will not."
+  },
+  "more": {
+    "label": "OTHER LIMITS",
+    "text": "Same tool, a different upload ceiling",
+    "link": "Compress for {platform}"
+  },
+  "platforms": {
+    "discord": {
+      "name": "Discord",
+      "proseName": "Discord",
+      "metaDescription": "Compress video for Discord's 20 MB free limit (50 MB Nitro Basic, 500 MB Nitro) without a watermark. Target-size encoding lands under the cap on the first try. Free, no install.",
+      "intro": "Discord raised the free upload limit from 10 MB to 20 MB in August 2026 — which means half the advice on the internet, and a good few of Discord’s own help pages, are now out of date. Here are the current numbers and what fits inside them.",
+      "limitsIntro": "Discord enforces the cap per file, not per message, and it follows your account rather than the server you are posting in. A Nitro subscriber posting in a free server still gets their 500 MB.",
+      "faq": [
+        {
+          "question": "What is the Discord file size limit in 2026?",
+          "answer": "20 MB on a free account, 50 MB on Nitro Basic and 500 MB on Nitro. The free tier was 10 MB until August 2026, and before that 25 MB — which is why you will find all three numbers quoted confidently across the web. If your upload absolutely has to work, or you are posting from an older mobile client, target 10 MB and you are safe against every version of the cap."
+        },
+        {
+          "question": "How do I send a video over 20 MB on Discord without Nitro?",
+          "answer": "Compress it. A 20 MB target is genuinely comfortable for anything up to about two minutes at 720p, and most clips people want to post in Discord are shorter than that. For a longer recording, drop the resolution to 720p before you worry about the bitrate — that single change buys you more than any amount of tweaking."
+        },
+        {
+          "question": "Does Discord compress my video after I upload it?",
+          "answer": "No. Discord stores and serves the file you uploaded, unchanged. This is genuinely different from Instagram or WhatsApp, which re-encode everything. It means the quality you see in our preview is exactly the quality your friends see, and it means compressing carefully is worth it here in a way it is not on other platforms."
+        },
+        {
+          "question": "Why did my upload fail even though the file was under 20 MB?",
+          "answer": "Two usual causes. Older Discord mobile clients still enforce the previous 10 MB cap, so a 15 MB file can work on desktop and fail on a phone. And Discord counts the file as it is on disk — if your file manager is showing you MB as 1,000,000 bytes while Discord counts 1,048,576, a file that reads as 20.0 MB can be a hair over the real limit. Targeting 19 MB sidesteps both."
+        }
+      ]
+    },
+    "email": {
+      "name": "Email",
+      "proseName": "email",
+      "metaDescription": "Compress video for email attachments. Gmail says 25 MB but really means about 18 MB — here is why, and how to land under it. Free, no watermark, no install.",
+      "intro": "Almost every page about emailing a video tells you Gmail’s limit is 25 MB. That is true and it is misleading, and it is why people compress to exactly 25 MB and watch the message bounce anyway.",
+      "limitsIntro": "Email attachments are base64-encoded in transit, which inflates them by about 37%. Gmail measures the encoded size. So a 25 MB video arrives at Google as roughly 34 MB and is refused. The real ceiling for a raw file is around 18 MB — which is the number we pre-set, and the number nobody else tells you.",
+      "faq": [
+        {
+          "question": "What size video can I attach to an email?",
+          "answer": "About 18 MB of actual video, if you want it to work everywhere. Gmail’s advertised limit is 25 MB and Outlook.com’s is 20 MB, but both measure the base64-encoded attachment, which is roughly 1.37x the file on your disk. Work email is often worse: Microsoft ships a 10 MB default for Exchange accounts, and plenty of administrators never change it."
+        },
+        {
+          "question": "Why did my email bounce when the video was under 25 MB?",
+          "answer": "Base64 encoding. Email cannot carry raw binary, so attachments are re-encoded into text, and that costs about 37% in size. Your 24 MB video is a 33 MB message. Gmail checks the message, not the file. Compress to 18 MB and the encoded message lands around 24.7 MB, just inside."
+        },
+        {
+          "question": "Should I use a Drive or Dropbox link instead?",
+          "answer": "For anything long, yes — and Gmail will do it for you automatically above 25 MB. But a link is worse for the recipient in real ways: it needs a second click, it can be blocked by corporate security, it expires, and it leaks who opened it and when. For a clip that genuinely fits in 18 MB, an attachment is the better experience."
+        },
+        {
+          "question": "How long a video fits in 18 MB?",
+          "answer": "At 720p, comfortably around two minutes. At 1080p, closer to one. Past about five minutes you are into territory where 480p is the honest answer — see the table above for the exact arithmetic at each length. If the recording is a screen capture rather than camera footage, you will do considerably better than these numbers, because screen content compresses far more efficiently than moving scenery."
+        }
+      ]
+    },
+    "whatsapp": {
+      "name": "WhatsApp",
+      "proseName": "WhatsApp",
+      "metaDescription": "Compress video for WhatsApp. Hit the 16 MB in-chat limit without a watermark, or learn when to send as a 2 GB document instead. Free, no install.",
+      "intro": "WhatsApp has two completely different size limits depending on how you send the file, and the app does not explain which one you are hitting. That is the entire problem, and it has a clean answer.",
+      "limitsIntro": "Send a video from your gallery and it goes in as a video: 16 MB, and WhatsApp re-encodes it on top of that. Send the same file as a document and you get 2 GB with no re-encoding at all — but no inline preview and no autoplay. WhatsApp’s own help pages quote different figures in different places, so 16 MB is the number to target if you want it to work on every client.",
+      "faq": [
+        {
+          "question": "What is the WhatsApp video size limit?",
+          "answer": "16 MB for a video sent in chat from a phone, and 2 GB if you send it as a document instead. WhatsApp Web sits in between at around 64 MB. WhatsApp’s own documentation is genuinely inconsistent on this — some pages describe a connection-dependent 64 to 100 MB ceiling — but 16 MB is accepted by every client everywhere, so that is what we target."
+        },
+        {
+          "question": "How do I send a long video on WhatsApp without losing quality?",
+          "answer": "Send it as a document. Tap the attachment icon, choose Document rather than Gallery, and pick your video file. WhatsApp will not touch it, and you get up to 2 GB. The cost is that it shows up as a file rather than a playable thumbnail, so the recipient has to download it before watching."
+        },
+        {
+          "question": "Why does my video look terrible after sending it on WhatsApp?",
+          "answer": "Because WhatsApp re-encoded it. Any video sent in chat gets compressed again on WhatsApp’s side, and it is not gentle. The way to fight this is counterintuitive: hand WhatsApp a file that is already close to its target, at 720p rather than 1080p. A clean 720p file at 14 MB survives their encoder far better than a 1080p file they have to crush from 80 MB."
+        },
+        {
+          "question": "How long can a 16 MB WhatsApp video be?",
+          "answer": "At 720p, roughly a minute and a half before it starts to soften. At 480p you can push to three or four minutes and still look fine on a phone screen, which is where the video will be watched anyway. The table above gives the exact bitrate at each length."
+        }
+      ]
+    },
+    "telegram": {
+      "name": "Telegram",
+      "proseName": "Telegram",
+      "metaDescription": "Compress video for Telegram. 2 GB free, 4 GB Premium — and only 50 MB through the Bot API. Free compression, no watermark, no install.",
+      "intro": "Telegram is the most generous mainstream messenger for file size, which means the interesting question is not how to fit under the limit — it is why you would compress at all. There are two good reasons.",
+      "limitsIntro": "A free account sends 2 GB per file and Premium doubles that to 4 GB, with unlimited cloud storage on both. The trap is automation: the Bot API caps uploads at 50 MB and downloads at 20 MB, nowhere near what a human account can send. If you are writing anything that posts to Telegram programmatically, that is the number that matters.",
+      "faq": [
+        {
+          "question": "What is the Telegram file size limit?",
+          "answer": "2 GB per file on a free account, 4 GB with Telegram Premium, and unlimited cloud storage either way. Bots are a separate world: 50 MB up and 20 MB down through the standard Bot API, which surprises almost everyone the first time they automate a channel."
+        },
+        {
+          "question": "Why compress a video for Telegram at all?",
+          "answer": "Two reasons. First, playback: Telegram streams video, and a 1.5 GB file buffers badly for anyone on mobile data — a 200 MB version of the same clip starts instantly and looks identical on a phone. Second, bots: if a script is doing the posting, you are working against 50 MB, not 2 GB."
+        },
+        {
+          "question": "Does Telegram re-compress my videos?",
+          "answer": "Not if you send them as a file. Sent as a regular video it may generate a streaming-optimised version, but the original is preserved and recipients can download it untouched. This is a real advantage over WhatsApp and Instagram, and it means the file you upload is the file that matters."
+        },
+        {
+          "question": "How do I send a video longer than 4 GB on Telegram?",
+          "answer": "You cannot, in one piece — 4 GB is the hard ceiling even on Premium. Compress it, or split it. For most source material, compressing is not a compromise: a two-hour 4K recording at 4 GB is carrying far more bitrate than anyone watching on a laptop can perceive, and 1080p at 1.5 GB will look the same to them."
+        }
+      ]
+    },
+    "slack": {
+      "name": "Slack",
+      "proseName": "Slack",
+      "metaDescription": "Compress video for Slack. 1 GB per file on every plan — but the 90-day free-plan retention is the limit that actually bites. Free, no watermark.",
+      "intro": "Slack’s file size cap is unusual: it does not change with your plan. Free, Pro, Business+ and Enterprise Grid all get 1 GB per file. What changes is how long the file stays visible, and that is the constraint most teams actually run into.",
+      "limitsIntro": "The 1 GB per-file ceiling is generous enough that most screen recordings clear it without help. The reason to compress for Slack is different: a 900 MB demo video makes the channel slow to load, eats the workspace storage quota that is shared across everyone, and takes a colleague on hotel wifi four minutes to open.",
+      "faq": [
+        {
+          "question": "What is the Slack file upload limit?",
+          "answer": "1 GB per file, on every plan including Free — Slack is unusual in not gating file size behind a subscription. Slack’s own recorded clips are separately capped at 5 minutes of runtime regardless of size."
+        },
+        {
+          "question": "Why compress a video if Slack allows 1 GB?",
+          "answer": "Because the per-file cap is not the constraint that hurts. Workspace storage is pooled across your whole team, so one person posting 900 MB demos weekly burns through it for everybody. And a large file in a busy channel is a genuinely bad experience for anyone on a slow connection — Slack does not stream video, it downloads it."
+        },
+        {
+          "question": "What happens to my Slack files after 90 days on the free plan?",
+          "answer": "They stop being visible or searchable. The data is not deleted — upgrading restores access — but for practical purposes a file older than 90 days does not exist on a free workspace. If a recording matters, do not let Slack be the only copy of it."
+        },
+        {
+          "question": "What size should a screen recording be for Slack?",
+          "answer": "Around 100 to 200 MB is a good target for a ten-minute walkthrough. Screen content compresses extremely well because most of the frame does not change between frames, so you can be much more aggressive than you would be with camera footage and still keep text sharp. Keep the resolution at 1080p so code and UI stay readable — that matters far more here than bitrate does."
+        }
+      ]
+    },
+    "instagram": {
+      "name": "Instagram",
+      "proseName": "Instagram",
+      "metaDescription": "Compress video for Instagram Reels and feed. The 4 GB cap is never the problem — Instagram re-encodes everything. Here is what to hand it. Free, no watermark.",
+      "intro": "Instagram will accept a 4 GB file, so file size is almost never why your upload failed. The reason your Reel looks worse than the file on your laptop is that Instagram re-encoded it, and what you hand their encoder decides how much survives.",
+      "limitsIntro": "Reels, feed video and Stories all accept up to 4 GB. That number is a red herring. Instagram re-encodes every upload to its own ladder, so the useful question is what gives their encoder the least work to do: a clean 1080x1920 H.264 file at 8 to 12 Mbps. Hand them a 3 GB master and their encoder crushes it far harder than it crushes a well-prepared 100 MB file.",
+      "faq": [
+        {
+          "question": "What is the Instagram video size limit?",
+          "answer": "4 GB for Reels, feed video and Stories. Duration is the tighter constraint in practice — Reels run to about 3 minutes, and Stories split into 15-second segments automatically. Very few people ever hit 4 GB."
+        },
+        {
+          "question": "Why does my Reel look blurry after uploading?",
+          "answer": "Instagram re-encodes everything, and its encoder makes worse decisions when you give it a harder problem. Uploading a huge, high-bitrate master does not preserve quality — it means their encoder has to throw away more, and it does that with no regard for what you cared about. A 1080x1920 H.264 file at around 10 Mbps gives their pipeline almost nothing to do, and that is what survives best."
+        },
+        {
+          "question": "What resolution should I upload to Instagram?",
+          "answer": "1080 x 1920, 9:16, at 30fps. Higher does not help: Instagram downscales anything above 1080p wide, so uploading 4K just means your footage gets scaled and re-encoded rather than only re-encoded. Use 60fps only if the content genuinely has fast motion, because doubling the frame rate halves the bitrate available to each frame."
+        },
+        {
+          "question": "Should I compress before uploading to Instagram?",
+          "answer": "Yes, and it is one of the few places where compressing improves the final result rather than just shrinking the file. Getting your export to 1080x1920 at 8 to 12 Mbps before uploading means Instagram’s encoder has almost no work left to do, so it makes fewer destructive decisions on your behalf."
+        }
+      ]
+    },
+    "tiktok": {
+      "name": "TikTok",
+      "proseName": "TikTok",
+      "metaDescription": "Compress video for TikTok. The Android app caps uploads at 72 MB — a quarter of the iOS limit, and nobody documents it. Free, no watermark, no install.",
+      "intro": "TikTok has three different upload limits depending on which device you are posting from, and it publishes none of them clearly. If your upload works on a friend’s iPhone but fails on your Android phone, this page explains why.",
+      "limitsIntro": "The Android app caps uploads at around 72 MB — a quarter of what the iOS app allows, and by far the tightest limit most creators will meet. The web uploader in TikTok Studio accepts very large files, but anything over roughly 500 MB slows processing down and fails more often. Compressing to 70 MB makes one file that works everywhere.",
+      "faq": [
+        {
+          "question": "What is the TikTok file size limit?",
+          "answer": "Roughly 72 MB from the Android app, about 288 MB from the iOS app, and up to several GB through the TikTok Studio web uploader. TikTok does not document these clearly anywhere, which is why you will see people insist the limit is 500 MB while someone else cannot upload 80 MB."
+        },
+        {
+          "question": "Why can I upload on iPhone but not on Android?",
+          "answer": "Because the Android app enforces a much smaller cap — around 72 MB against the iPhone’s 288 MB. Same account, same video, different ceiling. Compressing to 70 MB gives you one file that uploads from either, and at TikTok’s vertical 1080x1920 that is plenty for a three-minute video."
+        },
+        {
+          "question": "What settings should I export TikTok videos at?",
+          "answer": "1080 x 1920 vertical, H.264 in an MP4, 30fps, AAC audio at 128 kbps or higher. Use 60fps only for genuinely fast motion. TikTok re-encodes everything it receives, so the goal is not to hand it the biggest possible file — it is to hand it a clean one that needs as little work as possible."
+        },
+        {
+          "question": "Does compressing hurt TikTok video quality?",
+          "answer": "Less than you would think, and less than not compressing does. TikTok is going to re-encode your video regardless. Giving it a well-prepared 70 MB file at the right resolution generally survives that process better than giving it a 250 MB file that its encoder has to attack much harder."
+        }
+      ]
+    },
+    "twitter": {
+      "name": "X (Twitter)",
+      "proseName": "X",
+      "metaDescription": "Compress video for X (Twitter). 512 MB and 2:20 on a standard account. Duration bites long before file size does. Free, no watermark, no install.",
+      "intro": "On X, the file size limit is almost never what stops you. A standard account gets 512 MB — but only 2 minutes 20 seconds of runtime, and that is the wall nearly everyone hits first.",
+      "limitsIntro": "A standard account can post 512 MB and 2 minutes 20 seconds. X Premium raises both dramatically — up to 16 GB and four hours on web and iOS, though Android Premium is still capped at 10 minutes. Because the duration limit binds first, a standard-account video has 512 MB to spend on at most 140 seconds, which is a genuinely generous bitrate budget.",
+      "faq": [
+        {
+          "question": "What is the X (Twitter) video limit?",
+          "answer": "512 MB and 2 minutes 20 seconds on a standard account. X Premium goes to 16 GB and up to four hours on web and iOS; Premium on Android is limited to 10 minutes. In practice the duration cap is what people hit — very few 140-second videos come anywhere near 512 MB."
+        },
+        {
+          "question": "Why does my video fail to upload even though it is small enough?",
+          "answer": "Usually duration, not size. X also rejects uploads on resolution, aspect ratio, frame rate, bitrate, container and audio codec, and it reports almost all of these as the same generic failure. Exporting MP4 with H.264 video and AAC audio at 1280x720 or 1920x1080, 30fps, eliminates every one of those causes at once."
+        },
+        {
+          "question": "How do I post a video longer than 2 minutes 20 seconds?",
+          "answer": "Subscribe to Premium, or trim it. Trimming is usually the better answer: a 140-second cut of the interesting part outperforms a 12-minute upload on a platform where the median viewer decides in the first three seconds."
+        },
+        {
+          "question": "What quality should I upload to X?",
+          "answer": "Since a 140-second video has 512 MB available, you can afford roughly 30 Mbps — far more than the content needs. There is no reason to compress hard here. Export 1080p H.264 at 8 to 12 Mbps, keep it well under the ceiling, and X will re-encode it far more gently than it would a file that arrives near the limit."
+        }
+      ]
+    }
+  }
+}

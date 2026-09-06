@@ -14,11 +14,21 @@ type MetadataProps = {
   canonicalUrl?: string
   availableLocales?: string[]
   useDefaultOgImage?: boolean
+  /**
+   * Exact <title> string. Bypasses the "{title} - {tagLine}" / "{title} | {site}"
+   * composition entirely.
+   *
+   * Needed because the composed form puts the brand first, and the brand has no
+   * search volume — on the pages that have to rank, the keyword goes first and
+   * the brand goes last.
+   */
+  exactTitle?: string
 }
 
 export async function constructMetadata({
   title,
   description,
+  exactTitle,
   images,
   noIndex = false,
   locale,
@@ -33,9 +43,11 @@ export async function constructMetadata({
   const pageTagLine = t(`tagLine`)
   const pageDescription = description || t(`description`)
 
-  const finalTitle = path === '/'
-    ? `${pageTitle} - ${pageTagLine}`
-    : `${pageTitle} | ${siteConfig.name}`
+  const finalTitle = exactTitle
+    ? exactTitle
+    : path === '/'
+      ? `${pageTitle} - ${pageTagLine}`
+      : `${pageTitle} | ${siteConfig.name}`
 
   canonicalUrl = canonicalUrl || path
 

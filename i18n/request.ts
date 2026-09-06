@@ -15,6 +15,7 @@ export default getRequestConfig(async ({ requestLocale }) => {
     messages: {
       Landing: (await import(`./messages/${locale}/Landing.json`)).default,
       Compressor: (await import(`./messages/${locale}/Compressor.json`)).default,
+      Tools: (await import(`./messages/${locale}/Tools.json`)).default,
       Pricing: (await import(`./messages/${locale}/Pricing.json`)).default,
       NotFound: (await import(`./messages/${locale}/NotFound.json`)).default,
       Glossary: (await import(`./messages/${locale}/Glossary.json`)).default,

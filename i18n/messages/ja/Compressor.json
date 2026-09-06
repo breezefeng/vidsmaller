@@ -61,7 +61,7 @@
     },
     "targetSize": {
       "label": "目標ファイルサイズ（MB）",
-      "hint": "Discord（10 MB）、メール（25 MB）、WhatsApp（16 MB）の上限に便利です。"
+      "hint": "Discord（20 MB）、メール（18 MB）、WhatsApp（16 MB）の上限に便利です。"
     },
     "quality": {
       "label": "固定品質（CRF）",

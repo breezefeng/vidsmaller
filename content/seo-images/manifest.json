@@ -1,0 +1,65 @@
+{
+  "$comment": "SEO 配图清单。只放【章节插画 / hero 插画】这一类——即 gpt-image-2 该干的活。OG 卡片走 next/og，数据图走真实数据渲染，UI 截图走 Playwright，压缩前后对比走 ffmpeg 抽帧。见 docs/seo-images.md。",
+
+  "model": "gpt-image-2",
+
+  "styleContract": "Editorial tech illustration, flat vector style with subtle grain texture. Strict palette: deep indigo #1E1B4B, electric violet #7C3AED, cyan accent #06B6D4, warm off-white background #FAFAF9, one signal orange #F97316 used sparingly for the single most important element. Clean geometric shapes, generous negative space, no gradients heavier than a two-stop soft wash. Isometric or straight-on perspective, never dramatic angles. NO text, NO letters, NO numbers, NO UI chrome, NO logos, NO watermarks, NO human faces. Calm, precise, engineering-minded mood — not playful, not corporate-stocky. Composition must leave the left third relatively empty so a caption can overlay.",
+
+  "defaults": {
+    "size": "1536x1024",
+    "quality": "medium",
+    "outputFormat": "webp",
+    "background": "opaque"
+  },
+
+  "images": [
+    {
+      "id": "blog-01-hero",
+      "group": "blog",
+      "slug": "compress-video-without-losing-quality-hero",
+      "prompt": "A large translucent cube being gently folded down into a much smaller solid cube, the smaller cube glowing faintly to signal that nothing essential was lost. Thin measurement lines connect the two cubes showing the size difference. Isometric.",
+      "alt": "Illustration of a large video file being folded down into a much smaller file while keeping its quality",
+      "usedBy": ["blog/how-to-compress-a-video-without-losing-quality"]
+    },
+    {
+      "id": "blog-02-hero",
+      "group": "blog",
+      "slug": "compress-video-for-discord-hero",
+      "prompt": "A stack of video file blocks queueing to pass through a narrow rectangular gate. The blocks that fit through are compact and orange; the oversized ones wait behind. The gate is a clean geometric aperture, not a door. Straight-on perspective.",
+      "alt": "Illustration of video files passing through a narrow upload size gate",
+      "usedBy": ["blog/how-to-compress-a-video-for-discord", "compress-video-for-discord"]
+    },
+    {
+      "id": "tool-platform-hero",
+      "group": "tool",
+      "slug": "platform-upload-limits-hero",
+      "prompt": "Eight vertical bars of different heights arranged like a skyline, each bar a different height representing a different upload ceiling, with one horizontal orange line cutting across showing a compressed file that clears all of them. Minimal, chart-like but abstract, no axis labels.",
+      "alt": "Abstract chart illustration comparing upload size limits across platforms",
+      "usedBy": ["compress-video-for-email", "compress-video-for-whatsapp", "compress-video-for-telegram"]
+    },
+    {
+      "id": "blog-06-crf",
+      "group": "blog",
+      "slug": "crf-explained-hero",
+      "prompt": "A single horizontal slider track rendered as a precise ruler, with a marker positioned slightly left of center. Behind the track, the same abstract shape is repeated five times, getting progressively simpler and blockier from left to right, showing quality degradation as an abstract morph. No numbers on the ruler.",
+      "alt": "Illustration of a quality slider showing how detail degrades as the CRF value rises",
+      "usedBy": ["blog/crf-explained", "glossary/crf"]
+    },
+    {
+      "id": "blog-07-codecs",
+      "group": "blog",
+      "slug": "h264-h265-av1-hero",
+      "prompt": "Three containers of visibly different sizes holding the same identical glowing core object. The largest container is pale indigo, the middle one violet, the smallest cyan. Thin connecting lines suggest they are three encodings of one source. Isometric, evenly spaced.",
+      "alt": "Illustration comparing H.264, H.265 and AV1 file sizes for the same source video",
+      "usedBy": ["blog/h264-vs-h265-vs-av1", "hevc-to-h264"]
+    },
+    {
+      "id": "blog-04-benchmark",
+      "group": "blog",
+      "slug": "compression-benchmark-hero",
+      "prompt": "A grid of forty small squares of varying sizes and opacities arranged in a precise matrix, one square in signal orange standing out as the optimum. Suggests a systematic sweep of test results. Flat, top-down, laboratory-notebook feel.",
+      "alt": "Illustration of a systematic compression benchmark sweep across forty settings",
+      "usedBy": ["blog/we-compressed-the-same-file-40-ways"]
+    }
+  ]
+}

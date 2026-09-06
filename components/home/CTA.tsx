@@ -40,7 +40,7 @@ export default function CTA() {
 
               <div className="flex flex-col sm:flex-row justify-center items-center gap-4">
                 <I18nLink
-                  href="/#pricing"
+                  href={process.env.NEXT_PUBLIC_PRICING_PATH || "/pricing"}
                   className="flex items-center gap-2"
                   prefetch={true}
                 >

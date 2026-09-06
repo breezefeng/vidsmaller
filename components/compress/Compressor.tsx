@@ -10,6 +10,7 @@ import { estimateCredits } from '@/config/compress';
 import { Link as I18nLink } from '@/i18n/routing';
 import { formatBytes } from '@/lib/compress/client';
 import { estimateOutputBytes } from '@/lib/compress/estimate';
+import type { CompressSettings } from '@/lib/freeconvert/presets';
 import { cn } from '@/lib/utils';
 import {
   AlertCircle,
@@ -25,7 +26,12 @@ import { useTranslations } from 'next-intl';
 import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { useDropzone } from 'react-dropzone';
 
-export default function Compressor() {
+export default function Compressor({
+  initialSettings,
+}: {
+  /** Pre-fill the settings panel, e.g. target-size 19 MB on the Discord page. */
+  initialSettings?: CompressSettings;
+} = {}) {
   const t = useTranslations('Compressor');
   const {
     items,
@@ -41,7 +47,7 @@ export default function Compressor() {
     retryItem,
     stats,
     pendingItems,
-  } = useCompressor();
+  } = useCompressor(initialSettings);
 
   const actionRef = useRef<HTMLDivElement>(null);
   const hadItems = useRef(false);

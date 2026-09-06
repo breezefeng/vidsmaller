@@ -2,7 +2,9 @@
   "Home": {
     "title": "VidSmaller",
     "tagLine": "在线视频压缩 — 免费、快速、无水印",
-    "description": "VidSmaller 在云端把 MP4、MOV、MKV 等 20 多种视频格式最高压缩 90%。无需安装，不加水印，画质不塌。"
+    "description": "VidSmaller 在云端把 MP4、MOV、MKV 等 20 多种视频格式最高压缩 90%。无需安装，不加水印，画质不塌。",
+    "metaTitle": "免费在线视频压缩 — 压缩 MP4 不掉画质",
+    "metaDescription": "免费在线压缩视频。MP4、MOV、MKV 等 20 多种格式最高压掉 90%，可指定精确文件大小，满足邮件、Discord、网页上传限制。无水印，免安装，不注册也能试。"
   },
   "Login": {
     "title": "欢迎回来",
@@ -213,8 +215,8 @@
         "href": "/#pricing"
       },
       {
-        "name": "使用场景",
-        "href": "/#use-cases"
+        "name": "怎么用",
+        "href": "/#how-to"
       },
       {
         "name": "常见问题",
@@ -278,6 +280,10 @@
               "name": "价格"
             },
             {
+              "href": "/#formats",
+              "name": "支持格式"
+            },
+            {
               "href": "/#faq",
               "name": "常见问题"
             }
@@ -320,7 +326,8 @@
             }
           ]
         }
-      ]
+      ],
+      "compressFor": "按平台压缩"
     }
   }
 }

@@ -8,5 +8,50 @@
   "annual": "Annual",
   "monthly": "Monthly",
   "onetime": "Credit packs",
-  "saveTip": "Save 17%"
+  "saveTip": "Save 17%",
+  "metaTitle": "Pricing — Free Video Compression, Pay Only for Big Jobs",
+  "metaDescription": "VidSmaller pricing: compress video free with no watermark, or buy credits billed at exactly one encoder minute each. No subscription required, credits never expire.",
+  "heading": "Video compressor pricing",
+  "intro": "Compressing a video here is free to try with no watermark and no account. Credits only come into it when the files get big or the queue gets long — and one credit is one billed encoder minute, exactly what the encoder charges us. Credits you buy never expire, and failed jobs are refunded in full.",
+  "faqTitle": "Pricing questions",
+  "body": [
+    {
+      "title": "What a credit is",
+      "text": "One credit is one billed encoder minute. We charge exactly what our encoder charges us, with no markup on the compute itself — the plans exist to cover the rest of the service, not to resell minutes at a margin. Every job runs three stages (import, compress, export) and each is billed a full minute, so the floor for any job is 3 credits."
+    },
+    {
+      "title": "What 3 credits actually covers",
+      "text": "Any 1080p clip up to about seven minutes, because the encode itself only crosses into a second billed minute past that point. A 15-minute meeting recording is 4 credits. A 40-minute 4K file is 7. H.265 costs more across the board because it is roughly 3.8x slower to encode than H.264 — that is the encoder’s clock, not a surcharge we invented."
+    },
+    {
+      "title": "What you get without paying anything",
+      "text": "A couple of compressions a day with a 200 MB file limit, no account needed, and no watermark — the free output is byte-for-byte the same product as the paid output. Creating a free account raises the file limit to 1 GB and adds the batch queue. Most people never need more than that."
+    },
+    {
+      "title": "Refunds and expiry",
+      "text": "Failed jobs are refunded in full, automatically, once. Credits you have bought never expire — there is no monthly reset that quietly deletes what you paid for. Subscriptions can be cancelled at any time and the credits you already hold stay yours."
+    }
+  ],
+  "faq": [
+    {
+      "question": "Is VidSmaller free?",
+      "answer": "Yes, for the amount most people need. Signed-out visitors get a couple of compressions a day with a 200 MB file cap, and a free account raises that to 1 GB per file plus the batch queue. There is no watermark on any tier — the free output is exactly the same file the paid tier produces."
+    },
+    {
+      "question": "Do I need a subscription?",
+      "answer": "No. Credit packs are one-off purchases and the credits never expire, so if you compress a handful of large files twice a year, buying a pack is cheaper and simpler than subscribing. Subscriptions are only worth it if you are compressing regularly."
+    },
+    {
+      "question": "How many credits will my video cost?",
+      "answer": "Three for anything up to roughly seven minutes at 1080p, which covers most jobs. Longer files and larger frames cost more because they take the encoder longer, and H.265 costs roughly 3.8x what H.264 does for the same clip. The exact number is shown before you start the job, not after."
+    },
+    {
+      "question": "What happens if a compression fails?",
+      "answer": "You get the credits back, automatically and in full, once per job. We do not charge for encoder time that did not produce a file you can use."
+    },
+    {
+      "question": "Do credits expire?",
+      "answer": "No. Credits you have purchased stay in your account indefinitely, including after a subscription is cancelled. We do not run a monthly reset that erases unused balance."
+    }
+  ]
 }

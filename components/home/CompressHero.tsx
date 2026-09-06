@@ -16,9 +16,15 @@ export default function CompressHero() {
       <div className="container mx-auto px-4">
         <div className="flex flex-col items-center gap-8 py-12 lg:py-16">
           <div className="flex max-w-3xl flex-col gap-4 text-center">
+            {/* H1 carries the exact head term. The line that used to be the H1
+                is now the subtitle — it is better copy, but it contained no
+                keyword at all, and the H1 is not the place to be clever. */}
             <h1 className="z-10 font-sans text-3xl font-bold md:text-5xl lg:text-6xl">
               <span className="title-gradient">{t('title')}</span>
             </h1>
+            <p className="text-xl font-medium tracking-tight md:text-2xl">
+              {t('subtitle')}
+            </p>
             <p className="text-base leading-relaxed tracking-tight text-muted-foreground md:text-lg">
               {t('description')}
             </p>
