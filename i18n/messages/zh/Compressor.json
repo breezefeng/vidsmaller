@@ -140,6 +140,7 @@
     "noUploadTarget": "上传没能开始，请重试。",
     "lostConnection": "与服务器的连接中断",
     "timedOut": "处理超时",
-    "generic": "出了点问题"
+    "generic": "出了点问题",
+    "freePoolGone": "今天的免注册免费额度用完了，大约 {hours} 小时后恢复。<signIn>登录</signIn>就能用自己的积分继续。"
   }
 }

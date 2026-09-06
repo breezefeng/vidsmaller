@@ -1,7 +1,10 @@
 import 'server-only';
 
 import { billedMinutes, estimateCredits, TIER_LIMITS } from '@/config/compress';
-import { recordProviderMinutes } from '@/lib/compress/budget';
+import {
+  recordProviderMinutes,
+  settleFreeBudget,
+} from '@/lib/compress/budget';
 import { refundCredits } from '@/lib/compress/credits';
 import { deleteStagedObject } from '@/lib/compress/staging';
 import { db } from '@/lib/db';
@@ -90,13 +93,23 @@ function taskSeconds(task?: FCTask): number | null {
 /**
  * The provider's actual bill for a job: every task is rounded up on its own,
  * with a one-minute floor, so a three-task pipeline can never cost less than
- * three minutes. Tasks that never ran contribute nothing.
+ * three minutes.
+ *
+ * A task that *ran* is billed even when the API omits its timestamps, which
+ * it often does. Counting those as zero (the previous behaviour) made the
+ * recorded "actual" systematically lower than the invoice — measured on
+ * 2026-09-06: 14 minutes recorded against 10 jobs that cannot have cost less
+ * than 30. Only tasks that never reached a terminal state are free.
  */
 function billedMinutesForJob(fcJob: FCJob): number {
   let total = 0;
   for (const task of fcJob.tasks ?? []) {
+    const ran = task.status === 'completed' || task.status === 'failed';
+    if (!ran) continue;
+
     const seconds = taskSeconds(task);
-    if (seconds !== null) total += billedMinutes(seconds);
+    // No timestamps but it ran: charge the floor the provider charges.
+    total += seconds === null ? 1 : billedMinutes(seconds);
   }
   return total;
 }
@@ -208,6 +221,25 @@ export async function syncJob(job: CompressionJob): Promise<CompressionJob> {
   // Count usage once, on the transition into a terminal state.
   if (isTerminal && billed !== null && job.providerBilledMinutes === null) {
     void recordProviderMinutes(billed, { free: !job.userId });
+
+    /**
+     * Replace the gate's estimate with what actually happened. The estimate
+     * is deliberately pessimistic (per-task one-minute floors, a worst-case
+     * uplink), so without this the counter ratchets upward and the pool reads
+     * as exhausted while real spend is half of it.
+     */
+    const jobSettings = job.settings as {
+      budgetReservedMinutes?: number | null;
+      budgetDay?: string | null;
+    } | null;
+    const reserved = Number(jobSettings?.budgetReservedMinutes ?? 0);
+    if (reserved > 0) {
+      void settleFreeBudget({
+        reservedMinutes: reserved,
+        actualMinutes: billed,
+        day: jobSettings?.budgetDay ?? undefined,
+      });
+    }
   }
 
   // The provider has the file now; drop our staged copy either way.

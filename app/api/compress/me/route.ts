@@ -5,6 +5,7 @@ import {
   type PlanTier,
 } from '@/config/compress';
 import { apiResponse } from '@/lib/api-response';
+import { getFreeCapacity } from '@/lib/compress/budget';
 import { resolveRequester } from '@/lib/compress/quota';
 import { toJobView } from '@/lib/compress/service';
 import { isStagingEnabled } from '@/lib/compress/staging';
@@ -32,12 +33,20 @@ export async function GET(req: Request) {
     .orderBy(desc(jobsSchema.createdAt))
     .limit(20);
 
+  /**
+   * Only signed-out visitors draw on the shared pool, so only they need to
+   * know about it — and they need to know *before* picking a file, not as a
+   * 429 after the upload form is already filled in.
+   */
+  const freeCapacity = requester.userId ? null : await getFreeCapacity();
+
   return apiResponse.success({
     tier: requester.tier,
     signedIn: !!requester.userId,
     credits: requester.credits,
     /** whether the browser can fall back to staged uploads */
     stagingAvailable: isStagingEnabled(),
+    freeCapacity,
     limits: {
       maxFileSize: effectiveMaxFileSize(requester.tier),
       maxBatchFiles: requester.limits.maxBatchFiles,

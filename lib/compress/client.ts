@@ -322,11 +322,21 @@ export function fetchJob(jobId: string) {
   return callApi<{ job: JobView }>(`/api/compress/jobs/${jobId}`);
 }
 
+export interface FreeCapacity {
+  usedMinutes: number;
+  budgetMinutes: number;
+  remainingMinutes: number;
+  exhausted: boolean;
+  resetsAt: string;
+}
+
 export interface CompressorContext {
   tier: 'anonymous' | 'free' | 'pro' | 'max';
   signedIn: boolean;
   credits: number;
   stagingAvailable: boolean;
+  /** shared anonymous pool; null for signed-in users, who are not gated by it */
+  freeCapacity: FreeCapacity | null;
   limits: {
     maxFileSize: number;
     maxBatchFiles: number;

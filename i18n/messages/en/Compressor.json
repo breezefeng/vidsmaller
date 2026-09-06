@@ -140,6 +140,7 @@
     "noUploadTarget": "Upload could not start. Please try again.",
     "lostConnection": "Lost connection to the server",
     "timedOut": "Timed out",
-    "generic": "Something went wrong"
+    "generic": "Something went wrong",
+    "freePoolGone": "Free compressions without an account are used up for today — capacity comes back in about {hours}h. <signIn>Sign in</signIn> to use your own credits instead."
   }
 }

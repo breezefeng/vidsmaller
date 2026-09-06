@@ -139,6 +139,22 @@ export default function Compressor() {
   const notEnoughCredits =
     !!context?.signedIn && creditCost > 0 && creditCost > context.credits;
 
+  /**
+   * The shared anonymous pool. Signed-in users are never gated by it, so this
+   * is null for them. Shown up front because finding out via a 429 after
+   * picking a file and waiting through an upload is the worst possible time.
+   */
+  const capacityGone = context?.freeCapacity?.exhausted ?? false;
+  const capacityResetHours = context?.freeCapacity
+    ? Math.max(
+        1,
+        Math.round(
+          (new Date(context.freeCapacity.resetsAt).getTime() - Date.now()) /
+            3_600_000
+        )
+      )
+    : 0;
+
   const showResults = stats.allSettled && stats.done > 0;
   const canAddMore = items.length < maxBatch;
   const singleDone =
@@ -290,7 +306,12 @@ export default function Compressor() {
                   <Button
                     size="lg"
                     className="h-12 flex-1 rounded-xl text-base sm:flex-none sm:px-8"
-                    disabled={!stats.hasPending || stats.busy || notEnoughCredits}
+                    disabled={
+                      !stats.hasPending ||
+                      stats.busy ||
+                      notEnoughCredits ||
+                      capacityGone
+                    }
                     onClick={startAll}
                   >
                     <Zap className="mr-2 h-4 w-4" />
@@ -354,6 +375,29 @@ export default function Compressor() {
                         need: creditCost,
                         have: context?.credits ?? 0,
                       })}
+                    </AlertDescription>
+                  </Alert>
+                )}
+
+                {capacityGone && (
+                  <Alert>
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertDescription>
+                      {/* AlertDescription is a grid, so each child becomes its
+                          own row — rich text has to stay inside one block. */}
+                      <p>
+                        {t.rich('errors.freePoolGone', {
+                          hours: capacityResetHours,
+                          signIn: (chunks) => (
+                            <I18nLink
+                              href="/login"
+                              className="font-medium underline underline-offset-2"
+                            >
+                              {chunks}
+                            </I18nLink>
+                          ),
+                        })}
+                      </p>
                     </AlertDescription>
                   </Alert>
                 )}

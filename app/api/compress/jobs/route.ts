@@ -7,7 +7,11 @@ import {
   type VideoInputFormat,
 } from '@/config/compress';
 import { apiResponse } from '@/lib/api-response';
-import { releaseFreeBudget, reserveFreeBudget } from '@/lib/compress/budget';
+import {
+  budgetResetsAt,
+  releaseFreeBudget,
+  reserveFreeBudget,
+} from '@/lib/compress/budget';
 import {
   chargeCredits,
   InsufficientCreditsError,
@@ -121,11 +125,21 @@ export async function POST(req: Request) {
   /* ---------------- provider pool budget ---------------- */
 
   /**
-   * Conversion minutes are one pool shared by the whole account. Free and
-   * anonymous work draws from a ring-fenced slice of it so a traffic spike
-   * can never break a paying customer mid-month.
+   * Conversion minutes are one pool shared by the whole account, so anonymous
+   * work draws from a ring-fenced slice of it and can never break a paying
+   * customer mid-month.
+   *
+   * Signed-in users are *not* gated here, whatever their tier. Their credit
+   * balance is already the bound — a free-tier account gets a fixed monthly
+   * grant and cannot exceed it. Including them here meant a user could hold
+   * 30 credits, watch the UI say so, and still be told "try again tomorrow"
+   * by an invisible account-wide pool. Granted credits have to be spendable.
+   *
+   * This also makes the two counters agree: reservations and
+   * `recordProviderMinutes(..., { free: !userId })` now mean the same thing
+   * by "free", which they did not before.
    */
-  const isFreeTraffic = tier === 'anonymous' || tier === 'free';
+  const isFreeTraffic = !requester.userId;
   const providerMinutes = estimateProviderMinutes({
     durationSeconds: durationSeconds ?? null,
     fileSizeBytes: fileSize,
@@ -135,21 +149,28 @@ export async function POST(req: Request) {
   });
 
   let budgetReserved = 0;
+  let budgetDayKey: string | null = null;
   if (isFreeTraffic) {
     const budget = await reserveFreeBudget(providerMinutes);
     if (!budget.allowed) {
+      const resetsAt = budgetResetsAt();
+      const hours = Math.max(
+        1,
+        Math.round((resetsAt.getTime() - Date.now()) / 3_600_000)
+      );
       return apiResponse.error(
-        'Free compressions are maxed out for today. Try again tomorrow, or upgrade for guaranteed capacity.',
+        `Free compressions without an account are used up for today — capacity resets in about ${hours}h. Sign in to use your own credits instead.`,
         429
       );
     }
     budgetReserved = providerMinutes;
+    budgetDayKey = budget.day;
   }
 
   /** Hand the reservation back on any path that never reaches the provider. */
   const refundBudget = async () => {
     if (budgetReserved > 0) {
-      await releaseFreeBudget(budgetReserved);
+      await releaseFreeBudget(budgetReserved, budgetDayKey ?? undefined);
       budgetReserved = 0;
     }
   };
@@ -289,6 +310,10 @@ export async function POST(req: Request) {
         ...settings,
         stagingKey: stagingKey ?? null,
         estimatedProviderMinutes: Math.round(providerMinutes * 1000) / 1000,
+        // Only set when the pool was actually charged, and which bucket it
+        // hit — a job created at 23:59 must settle against yesterday.
+        budgetReservedMinutes: budgetReserved || null,
+        budgetDay: budgetDayKey,
       },
       creditsCharged: credits,
     })
