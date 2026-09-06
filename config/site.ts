@@ -8,7 +8,7 @@ const YOUTUBE_URL = ''
 const INSTAGRAM_URL = ''
 const TIKTOK_URL = ''
 const DISCORD_URL = process.env.NEXT_PUBLIC_DISCORD_INVITE_URL
-const EMAIL_URL = ''
+const EMAIL_URL = 'support@vidsmaller.com'
 
 export const siteConfig: SiteConfig = {
   name: "VidSmaller",

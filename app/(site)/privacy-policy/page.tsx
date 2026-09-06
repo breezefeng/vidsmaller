@@ -9,15 +9,103 @@ import CookieManagementSection from "./CookieManagementSection";
 export const dynamic = "force-static";
 export const revalidate = false;
 
+const LAST_UPDATED = "6 September 2026";
+const SUPPORT_EMAIL = siteConfig.socialLinks?.email || "support@vidsmaller.com";
+
 export async function generateMetadata(): Promise<Metadata> {
   return constructMetadata({
     title: "Privacy Policy",
-    description: `How ${siteConfig.name} collect and use your information.`,
+    description: `What ${siteConfig.name} does with your videos, your account data and your payments — and how long any of it is kept.`,
     path: `/privacy-policy`,
     locale: "en",
     availableLocales: ["en"],
   });
 }
+
+const SUBPROCESSORS: { name: string; purpose: string; location: string }[] = [
+  {
+    name: "FreeConvert",
+    purpose:
+      "Runs the actual video encoding, and hosts the compressed result until its download link expires",
+    location: "United States",
+  },
+  {
+    name: "Cloudflare (R2)",
+    purpose:
+      "Storage bucket your browser uploads to before encoding, plus the CDN that serves it to the encoder; also hosts account avatars and blog images",
+    location: "Global edge network",
+  },
+  {
+    name: "Vercel",
+    purpose: "Application hosting, request routing and aggregate page analytics",
+    location: "United States (us-east-1)",
+  },
+  {
+    name: "Supabase (PostgreSQL)",
+    purpose:
+      "Database holding accounts, compression job records, credit ledger and orders",
+    location: "United States (AWS us-east-1)",
+  },
+  {
+    name: "Stripe",
+    purpose:
+      "Payment processing, subscription billing and the customer billing portal",
+    location: "Global (Stripe entities)",
+  },
+  {
+    name: "Resend",
+    purpose:
+      "Sign-in links, one-time codes, transactional email and newsletter delivery",
+    location: "United States (AWS SES us-east-1)",
+  },
+  {
+    name: "Upstash (Redis)",
+    purpose:
+      "Short-lived counters that enforce the free daily limit and block abuse",
+    location: "United States (us-east-1)",
+  },
+  {
+    name: "Google",
+    purpose:
+      "Google sign-in and Google One Tap, if you choose to sign in with a Google account",
+    location: "Global (Google LLC)",
+  },
+];
+
+const RETENTION: { item: string; kept: string }[] = [
+  {
+    item: "The video you upload (staged copy in our bucket)",
+    kept: "Deleted as soon as the job reaches a final state. A bucket lifecycle rule hard-deletes anything left behind within 24 hours — for example if you close the tab mid-upload.",
+  },
+  {
+    item: "The compressed result",
+    kept: "2 hours for jobs started without an account; up to 7 days for signed-in accounts. After that the download link stops working and the file is removed by the encoding provider.",
+  },
+  {
+    item: "Job record (file name, sizes, duration, format, settings, credits, status)",
+    kept: "For as long as your account exists, so your history, billing and support requests make sense. Deleted with the account. Anonymous job rows are pruned once they expire.",
+  },
+  {
+    item: "Hashed visitor key for signed-out jobs",
+    kept: "Stored on the job row and removed with it. It is a one-way hash — we cannot turn it back into your IP address.",
+  },
+  {
+    item: "Rate-limit counters (Redis)",
+    kept: "Rolling 24-hour window, then they expire automatically.",
+  },
+  {
+    item: "Account profile (email, name, avatar, sign-in provider)",
+    kept: "Until you delete your account. Deletion removes your sessions, jobs, credit history and profile within 30 days.",
+  },
+  {
+    item: "Orders, invoices and payment records",
+    kept: "Retained as long as tax and accounting law requires (typically 7 years), even after account deletion. Card numbers are never among them.",
+  },
+  {
+    item: "Server logs",
+    kept: "Kept briefly by our hosting provider for debugging and abuse investigation, then rotated out.",
+  },
+];
 
 export default function PrivacyPolicyPage() {
   const COOKIE_CONSENT_ENABLED =
@@ -27,359 +115,474 @@ export default function PrivacyPolicyPage() {
     <div className="bg-secondary/20 py-8 sm:py-12">
       <div className="container mx-auto max-w-4xl px-4">
         <div className="bg-background rounded-xl border p-6 shadow-xs sm:p-8 dark:border-zinc-800">
-          <h1 className="mb-6 text-2xl font-bold sm:text-3xl">
-            Privacy Policy
-          </h1>
+          <h1 className="mb-2 text-2xl font-bold sm:text-3xl">Privacy Policy</h1>
+          <p className="mb-6 text-sm text-muted-foreground">
+            Last updated: {LAST_UPDATED}
+          </p>
 
           <div className="space-y-6">
+            <section className="rounded-lg border bg-secondary/30 p-4">
+              <h2 className="mb-3 text-xl font-semibold">The short version</h2>
+              <ul className="list-disc space-y-1 pl-6">
+                <li>
+                  Your video is uploaded straight from your browser to our
+                  storage bucket, encoded, and then deleted. We do not watch it,
+                  train on it, or sell it.
+                </li>
+                <li>
+                  Staged uploads are deleted the moment a job finishes; results
+                  expire after 2 hours (signed out) or up to 7 days (signed in).
+                </li>
+                <li>
+                  We never see your card number — Stripe handles payments end to
+                  end.
+                </li>
+                <li>
+                  Signed-out visitors are counted with a one-way hash of IP +
+                  browser, not a stored IP address.
+                </li>
+                <li>
+                  No advertising networks, no data brokers, no selling of
+                  personal information.
+                </li>
+              </ul>
+            </section>
+
             <section>
-              <h2 className="mb-3 text-xl font-semibold">Introduction</h2>
+              <h2 className="mb-3 text-xl font-semibold">Who we are</h2>
               <p className="mb-3">
-                Welcome to {siteConfig.name} (hereinafter referred to as "we",
-                "our platform" or "{siteConfig.name}"). We are committed to
-                protecting your privacy and personal information. This Privacy
-                Policy aims to clearly explain how we collect, use, store, and
-                protect your personal information. By using our services,
-                website, or products, you agree to the practices described in
-                this Privacy Policy.
+                {siteConfig.name} ("we", "us") operates{" "}
+                <Link href="/" className="text-primary hover:underline">
+                  {siteConfig.url.replace(/^https?:\/\//, "")}
+                </Link>
+                , a browser-based video compression service. We are the data
+                controller for the information described here. This policy
+                covers the website, the compressor, and the accounts and
+                payments attached to them.
+              </p>
+              <p className="mb-3">
+                Questions, requests or complaints:{" "}
+                <a
+                  href={`mailto:${SUPPORT_EMAIL}`}
+                  className="text-blue-500 hover:underline"
+                >
+                  {SUPPORT_EMAIL}
+                </a>
+                .
               </p>
             </section>
 
             <section>
               <h2 className="mb-3 text-xl font-semibold">
-                Information We Collect
+                Your videos, specifically
+              </h2>
+              <p className="mb-3">
+                This is the part most people actually care about, so it comes
+                first.
+              </p>
+              <ul className="mb-3 list-disc space-y-1 pl-6">
+                <li>
+                  <strong>Where the file goes.</strong> Your browser uploads it
+                  directly to our Cloudflare R2 bucket using a one-time signed
+                  URL. It does not pass through the web server that renders this
+                  page. The object key is a random UUID, so the address cannot be
+                  guessed.
+                </li>
+                <li>
+                  <strong>Who processes it.</strong> Our encoding provider
+                  (FreeConvert) fetches the file from that bucket over HTTPS,
+                  runs the FFmpeg job with the settings you chose, and returns a
+                  compressed file. Your download is proxied through our server.
+                </li>
+                <li>
+                  <strong>What we do not do with it.</strong> No human at{" "}
+                  {siteConfig.name} opens your video. It is not used to train
+                  machine-learning models, is not shared with advertisers or data
+                  brokers, and is not analysed for anything beyond running the
+                  compression you asked for.
+                </li>
+                <li>
+                  <strong>What is left afterwards.</strong> The staged upload is
+                  deleted when the job settles; the result expires on the timer
+                  in the retention table below. What remains is the job record —
+                  file name, sizes, duration, chosen settings, credits charged —
+                  which is what powers your history and support requests.
+                </li>
+                <li>
+                  <strong>Don't upload what you can't share with a
+                  processor.</strong> Compression is inherently a "send the file
+                  to a server" operation. If footage is confidential to the point
+                  that a third-party encoder is unacceptable, use a local tool
+                  instead. We would rather say that than pretend otherwise.
+                </li>
+              </ul>
+            </section>
+
+            <section>
+              <h2 className="mb-3 text-xl font-semibold">
+                Information we collect
               </h2>
 
               <div className="mb-6">
                 <h3 className="mb-3 text-lg font-medium">
-                  1. Information You Provide Directly
+                  1. Information you give us
                 </h3>
-                <p className="mb-3">
-                  When you use our services, we may collect the following types
-                  of information:
-                </p>
                 <ul className="mb-3 list-disc space-y-1 pl-6">
                   <li>
-                    <strong>Account Information</strong>: Including your name,
-                    email address, avatar, and other information you provide
-                    when registering or updating your account
+                    <strong>Account data</strong> — email address, display name
+                    and avatar, either typed in or supplied by the sign-in
+                    provider you chose. We support Google sign-in (including
+                    Google One Tap), magic links and one-time email codes. We do
+                    not use passwords, so there is no password to store or leak.
                   </li>
                   <li>
-                    <strong>Payment Information</strong>: If you purchase our
-                    paid services, we collect necessary payment details through
-                    secure third-party payment processors (such as Stripe)
+                    <strong>Files and job settings</strong> — the video you
+                    upload and the compression options you select.
                   </li>
                   <li>
-                    <strong>Contact Information</strong>: Information you
-                    provide when communicating with us via email, forms, or
-                    other means
+                    <strong>Payment details</strong> — entered on Stripe's
+                    checkout, never on our servers. We receive and store the
+                    resulting order records: plan, amount, currency, status and
+                    Stripe identifiers. We never receive your full card number.
                   </li>
                   <li>
-                    <strong>Subscription Information</strong>: Email address and
-                    preferences when you subscribe to our mailing list
+                    <strong>Messages</strong> — anything you send us by email,
+                    plus the newsletter subscription and preferences if you opt
+                    in.
                   </li>
                 </ul>
               </div>
 
               <div className="mb-6">
                 <h3 className="mb-3 text-lg font-medium">
-                  2. Anonymous Information Collected Automatically
+                  2. Information collected automatically
                 </h3>
-                <p className="mb-3">
-                  When you visit or use our services, we may automatically
-                  collect anonymous information:
-                </p>
                 <ul className="mb-3 list-disc space-y-1 pl-6">
                   <li>
-                    <strong>Device Information</strong>: Including your IP
-                    address, browser type, operating system, and device
-                    identifiers
+                    <strong>Technical request data</strong> — IP address,
+                    user-agent, timestamps and requested URL, as in any server
+                    log. Used for security, debugging and abuse prevention.
                   </li>
                   <li>
-                    <strong>Usage Data</strong>: Information about how you use
-                    our services, including access times, pages viewed, and
-                    interaction methods
+                    <strong>A hashed visitor key</strong> — for signed-out
+                    compressions we store{" "}
+                    <code className="rounded bg-secondary px-1 py-0.5 text-sm">
+                      sha256(IP + user-agent + server secret)
+                    </code>
+                    , truncated. It lets us enforce the free daily limit and
+                    return your job to you without keeping your IP address on the
+                    record.
                   </li>
                   <li>
-                    <strong>Cookies and Similar Technologies</strong>: We use
-                    cookies and similar technologies to collect information and
-                    enhance your user experience
+                    <strong>Rate-limit counters</strong> — short-lived counters
+                    in Redis keyed by IP, on a rolling 24-hour window.
+                  </li>
+                  <li>
+                    <strong>Aggregate page analytics</strong> — Vercel Analytics,
+                    which is cookieless and reports visit counts and page
+                    performance in aggregate. It does not build a profile of you
+                    across sites.
                   </li>
                 </ul>
+                <p className="mb-3">
+                  We currently run <strong>no advertising network</strong> and no
+                  cross-site ad tracking on this site. If that ever changes, this
+                  page and the cookie controls will be updated before it does.
+                </p>
               </div>
             </section>
 
             <section>
               <h2 className="mb-3 text-xl font-semibold">
-                How We Use Your Information
+                Why we use it (and the legal basis)
               </h2>
-              <p className="mb-3">
-                We use the collected information for the following purposes:
-              </p>
               <ul className="mb-3 list-disc space-y-1 pl-6">
                 <li>
-                  <strong>Providing Services</strong>: Managing your account,
-                  processing transactions, providing customer support, and
-                  delivering the core functionality of our website and services
+                  <strong>To run the service</strong> — accept your upload,
+                  encode it, deliver the result, track credits, keep your history
+                  (performance of a contract).
                 </li>
                 <li>
-                  <strong>Improving Services</strong>: Analyzing usage patterns,
-                  optimizing user experience and features, and developing new
-                  functionalities
-                  {COOKIE_CONSENT_ENABLED &&
-                    " (only with your consent for analytics cookies)"}
+                  <strong>To take payment</strong> — process subscriptions and
+                  credit purchases, issue receipts, meet accounting obligations
+                  (contract and legal obligation).
                 </li>
                 <li>
-                  <strong>Communication</strong>: Contacting you regarding your
-                  account, service changes, new features, or related products
+                  <strong>To keep the service up</strong> — rate limiting, fraud
+                  and abuse prevention, debugging, capacity planning (legitimate
+                  interests).
                 </li>
                 <li>
-                  <strong>Security</strong>: Detecting, preventing, and
-                  addressing fraud, abuse, and security issues
-                </li>
-                <li>
-                  <strong>Marketing</strong>: Sending relevant product updates,
-                  tutorials, and promotional information (if you have opted to
-                  receive them)
-                  {COOKIE_CONSENT_ENABLED &&
-                    ", and displaying relevant advertisements (only with your consent for advertising cookies)"}
-                </li>
-              </ul>
-              {COOKIE_CONSENT_ENABLED && (
-                <p className="mb-3 text-sm text-muted-foreground">
-                  <strong>Note:</strong> When cookie consent is enabled, certain
-                  data processing activities (such as analytics and advertising)
-                  only occur with your explicit consent. You can manage these
-                  preferences in the Cookie Preferences section above.
-                </p>
-              )}
-            </section>
-
-            <section>
-              <h2 className="mb-3 text-xl font-semibold">
-                Information Sharing
-              </h2>
-              <p className="mb-3">
-                We do not sell your personal information. We may share your
-                information in the following circumstances:
-              </p>
-              <ul className="mb-3 list-disc space-y-1 pl-6">
-                <li>
-                  <strong>Service Providers</strong>: With third-party service
-                  providers who perform services on our behalf, such as payment
-                  processing (Stripe), cloud storage (Supabase, Cloudflare R2),
-                  and email services (Resend)
-                </li>
-                <li>
-                  <strong>Compliance and Legal Requirements</strong>: When we
-                  believe in good faith that disclosure is required by law or to
-                  protect our rights and security or those of others
+                  <strong>To talk to you</strong> — sign-in codes, job or billing
+                  notifications, and support replies (contract); product
+                  newsletters only if you opted in (consent — unsubscribe in one
+                  click from any of them).
                 </li>
               </ul>
             </section>
 
             <section>
               <h2 className="mb-3 text-xl font-semibold">
-                Data Storage and Security
+                How long we keep things
               </h2>
-              <p className="mb-3">
-                We implement reasonable technical and organizational measures to
-                protect your personal information:
-              </p>
-              <ul className="mb-3 list-disc space-y-1 pl-6">
-                <li>
-                  All payment information is processed through secure payment
-                  processors like Stripe; we do not directly store complete
-                  payment card details
-                </li>
-                <li>We use SSL/TLS encryption to protect data transmission</li>
-                <li>
-                  We regularly review our information collection, storage, and
-                  processing practices, including physical security measures
-                </li>
-              </ul>
+              <div className="overflow-x-auto">
+                <table className="w-full border-collapse text-sm">
+                  <thead>
+                    <tr>
+                      <th className="border bg-secondary/40 px-3 py-2 text-left font-semibold dark:border-zinc-800">
+                        Data
+                      </th>
+                      <th className="border bg-secondary/40 px-3 py-2 text-left font-semibold dark:border-zinc-800">
+                        Retention
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {RETENTION.map((row) => (
+                      <tr key={row.item}>
+                        <td className="border px-3 py-2 align-top font-medium dark:border-zinc-800">
+                          {row.item}
+                        </td>
+                        <td className="border px-3 py-2 align-top dark:border-zinc-800">
+                          {row.kept}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </section>
 
             <section>
               <h2 className="mb-3 text-xl font-semibold">
-                Your Rights and Choices
+                Who else touches your data
               </h2>
               <p className="mb-3">
-                Depending on applicable laws in your region, you may have the
-                following rights:
+                We do not sell personal information and we do not share it for
+                advertising. We do use the following processors to run the
+                service — each of them only gets what its job requires:
+              </p>
+              <div className="overflow-x-auto">
+                <table className="w-full border-collapse text-sm">
+                  <thead>
+                    <tr>
+                      <th className="border bg-secondary/40 px-3 py-2 text-left font-semibold dark:border-zinc-800">
+                        Processor
+                      </th>
+                      <th className="border bg-secondary/40 px-3 py-2 text-left font-semibold dark:border-zinc-800">
+                        What it does
+                      </th>
+                      <th className="border bg-secondary/40 px-3 py-2 text-left font-semibold dark:border-zinc-800">
+                        Where
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {SUBPROCESSORS.map((p) => (
+                      <tr key={p.name}>
+                        <td className="border px-3 py-2 align-top font-medium dark:border-zinc-800">
+                          {p.name}
+                        </td>
+                        <td className="border px-3 py-2 align-top dark:border-zinc-800">
+                          {p.purpose}
+                        </td>
+                        <td className="border px-3 py-2 align-top dark:border-zinc-800">
+                          {p.location}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <p className="mb-3 mt-3">
+                We may also disclose information where the law genuinely requires
+                it, or to protect our rights, users and infrastructure from
+                abuse. If {siteConfig.name} is ever sold or merged, account data
+                would transfer with it and you would be told before anything
+                changed.
+              </p>
+            </section>
+
+            <section>
+              <h2 className="mb-3 text-xl font-semibold">
+                International transfers
+              </h2>
+              <p className="mb-3">
+                Our servers and processors are primarily in the United States,
+                with Cloudflare serving from the edge location nearest you. If
+                you are in the EEA, UK or Switzerland, your data is therefore
+                transferred outside your country. Those transfers rely on the
+                processors' Standard Contractual Clauses and equivalent
+                safeguards, which they publish in their own data processing
+                agreements.
+              </p>
+            </section>
+
+            <section>
+              <h2 className="mb-3 text-xl font-semibold">Security</h2>
+              <ul className="mb-3 list-disc space-y-1 pl-6">
+                <li>Everything moves over TLS — uploads, API calls, downloads.</li>
+                <li>
+                  Uploads use short-lived signed URLs, and object keys are random
+                  UUIDs (122 bits of entropy) rather than file names.
+                </li>
+                <li>
+                  Downloads are proxied by our server against your job record, so
+                  one user's link cannot be reused by another.
+                </li>
+                <li>
+                  Provider webhooks are HMAC-verified before we act on them.
+                </li>
+                <li>
+                  No card data ever reaches us, and no passwords exist to be
+                  stolen.
+                </li>
+              </ul>
+              <p className="mb-3">
+                No system is perfect. If you find a security problem, email{" "}
+                <a
+                  href={`mailto:${SUPPORT_EMAIL}`}
+                  className="text-blue-500 hover:underline"
+                >
+                  {SUPPORT_EMAIL}
+                </a>{" "}
+                and we will get back to you quickly.
+              </p>
+            </section>
+
+            <section>
+              <h2 className="mb-3 text-xl font-semibold">Your rights</h2>
+              <p className="mb-3">
+                Depending on where you live (GDPR, UK GDPR, CCPA/CPRA and
+                similar laws), you can ask us to:
               </p>
               <ul className="mb-3 list-disc space-y-1 pl-6">
                 <li>
-                  <strong>Access</strong>: Obtain a copy of your personal
-                  information that we hold
+                  <strong>Access</strong> a copy of the personal data we hold
+                  about you
                 </li>
                 <li>
-                  <strong>Correction</strong>: Update or correct your personal
-                  information
+                  <strong>Correct</strong> anything inaccurate — name, email and
+                  avatar are editable yourself in{" "}
+                  <span className="font-mono text-sm">/dashboard/settings</span>
                 </li>
                 <li>
-                  <strong>Deletion</strong>: Request deletion of your personal
-                  information in certain circumstances
+                  <strong>Delete</strong> your account and the data attached to
+                  it
                 </li>
                 <li>
-                  <strong>Objection</strong>: Object to our processing of your
-                  personal information
+                  <strong>Export</strong> your data in a portable format
                 </li>
                 <li>
-                  <strong>Restriction</strong>: Request that we limit the
-                  processing of your personal information
+                  <strong>Object to or restrict</strong> processing based on our
+                  legitimate interests
                 </li>
                 <li>
-                  <strong>Data Portability</strong>: Obtain an electronic copy
-                  of information you have provided to us
+                  <strong>Withdraw consent</strong> for marketing email at any
+                  time
                 </li>
               </ul>
+              <p className="mb-3">
+                Email{" "}
+                <a
+                  href={`mailto:${SUPPORT_EMAIL}`}
+                  className="text-blue-500 hover:underline"
+                >
+                  {SUPPORT_EMAIL}
+                </a>{" "}
+                from the address on your account and we will respond within 30
+                days. We do not charge for this, and we will not degrade your
+                service for asking. We do not sell or "share" personal
+                information as those terms are defined under California law.
+              </p>
             </section>
 
             <CookieManagementSection />
 
             <section>
-              <h2 className="mb-3 text-xl font-semibold">Cookie Policy</h2>
+              <h2 className="mb-3 text-xl font-semibold">Cookies</h2>
               <p className="mb-3">
-                We use cookies and similar technologies to collect information
-                and improve your experience. Cookies are small text files placed
-                on your device that help us provide a better user experience.
-              </p>
-
-              {COOKIE_CONSENT_ENABLED ? (
-                <>
-                  <p className="mb-3">
-                    <strong>Cookie Consent Management:</strong> We have
-                    implemented a cookie consent system that allows you to
-                    control which cookies are used on our website. You can
-                    manage your preferences using the Cookie Preferences section
-                    above.
-                  </p>
-
-                  <div className="mb-6">
-                    <h3 className="mb-3 text-lg font-medium">
-                      Essential Cookies
-                    </h3>
-                    <p className="mb-3">
-                      These cookies are necessary for the website to function
-                      and cannot be disabled:
-                    </p>
-                    <ul className="mb-3 list-disc space-y-1 pl-6">
-                      <li>
-                        <strong>cookieConsent</strong>: Stores your cookie
-                        consent preferences (expires after 1 year)
-                      </li>
-                      <li>
-                        <strong>Authentication Cookies</strong>: Required for
-                        user login and session management
-                      </li>
-                    </ul>
-                  </div>
-
-                  <div className="mb-6">
-                    <h3 className="mb-3 text-lg font-medium">
-                      Optional Cookies (Require Consent)
-                    </h3>
-                    <p className="mb-3">
-                      These cookies are only used if you have given your
-                      consent:
-                    </p>
-                    <ul className="mb-3 list-disc space-y-1 pl-6">
-                      <li>
-                        <strong>Analytics Cookies</strong>: Google Analytics,
-                        Plausible Analytics, and Baidu Analytics to understand
-                        website usage
-                      </li>
-                      <li>
-                        <strong>Advertising Cookies</strong>: Google AdSense for
-                        displaying relevant advertisements
-                      </li>
-                      <li>
-                        <strong>Performance Cookies</strong>: Help us analyze
-                        and improve website performance
-                      </li>
-                    </ul>
-                  </div>
-                </>
-              ) : (
-                <>
-                  <p className="mb-3">The types of cookies we use include:</p>
-                  <ul className="mb-3 list-disc space-y-1 pl-6">
-                    <li>
-                      <strong>Necessary Cookies</strong>: Essential for the
-                      basic functionality of the website, including
-                      authentication and session management
-                    </li>
-                    <li>
-                      <strong>Analytics Cookies</strong>: Help us understand how
-                      visitors interact with the website through Google
-                      Analytics, Plausible Analytics, and Baidu Analytics
-                    </li>
-                    <li>
-                      <strong>Advertising Cookies</strong>: Used by Google
-                      AdSense to display relevant advertisements
-                    </li>
-                    <li>
-                      <strong>Performance Cookies</strong>: Help us analyze and
-                      improve website performance
-                    </li>
-                  </ul>
-                </>
-              )}
-
-              <p className="mb-3">
-                You can control or delete cookies by changing your browser
-                settings. Please note that disabling certain cookies may affect
-                your experience on our website.
-                {COOKIE_CONSENT_ENABLED &&
-                  " Additionally, you can use the Cookie Preferences section above to manage your consent for optional cookies."}
-              </p>
-            </section>
-
-            <section>
-              <h2 className="mb-3 text-xl font-semibold">Children's Privacy</h2>
-              <p className="mb-3">
-                Our services are not directed to children under 13 years of age.
-                We do not knowingly collect personal information from children
-                under 13. If you discover that we may have collected personal
-                information from a child under 13, please contact us, and we
-                will promptly take steps to delete that information.
-              </p>
-            </section>
-
-            <section>
-              <h2 className="mb-3 text-xl font-semibold">
-                International Data Transfers
-              </h2>
-              <p className="mb-3">
-                We may process and store your personal information globally,
-                including in countries outside your country of residence. In
-                such cases, we will take appropriate measures to ensure your
-                personal information receives adequate protection.
-              </p>
-            </section>
-
-            <section>
-              <h2 className="mb-3 text-xl font-semibold">
-                Updates to This Privacy Policy
-              </h2>
-              <p className="mb-3">
-                We may update this Privacy Policy from time to time. When we
-                make significant changes, we will post the revised policy on our
-                website and update the "Last Updated" date at the top. We
-                encourage you to review this policy periodically to stay
-                informed about how we protect your information.
-              </p>
-            </section>
-
-            <section>
-              <h2 className="mb-3 text-xl font-semibold">Contact Us</h2>
-              <p className="mb-3">
-                If you have any questions, comments, or requests regarding this
-                Privacy Policy or our privacy practices, please contact us
-                through:
+                We keep this list short on purpose. The cookies and local storage
+                items this site actually sets are:
               </p>
               <ul className="mb-3 list-disc space-y-1 pl-6">
+                <li>
+                  <strong>Session cookie</strong> — keeps you signed in. Strictly
+                  necessary; without it there is no account.
+                </li>
+                <li>
+                  <strong>
+                    <code className="rounded bg-secondary px-1 py-0.5 text-sm">
+                      NEXT_LOCALE
+                    </code>
+                  </strong>{" "}
+                  — remembers whether you chose English, 中文 or 日本語.
+                </li>
+                <li>
+                  <strong>Theme preference</strong> — light or dark mode, stored
+                  in your browser's local storage.
+                </li>
+                {COOKIE_CONSENT_ENABLED && (
+                  <li>
+                    <strong>
+                      <code className="rounded bg-secondary px-1 py-0.5 text-sm">
+                        cookieConsent
+                      </code>
+                    </strong>{" "}
+                    — records your answer to the cookie banner for a year.
+                  </li>
+                )}
+                <li>
+                  <strong>Google sign-in</strong> — if you use Google or Google
+                  One Tap, Google sets its own cookies on its own domains under
+                  its privacy policy.
+                </li>
+              </ul>
+              <p className="mb-3">
+                Our page analytics are cookieless. You can block or delete
+                cookies in your browser settings; blocking the session cookie
+                means you cannot stay signed in, but anonymous compression will
+                still work.
+                {COOKIE_CONSENT_ENABLED &&
+                  " You can also change your choice at any time in the Cookie Preferences section above."}
+              </p>
+            </section>
+
+            <section>
+              <h2 className="mb-3 text-xl font-semibold">Children</h2>
+              <p className="mb-3">
+                {siteConfig.name} is not intended for children under 13 (or the
+                minimum age in your country), and we do not knowingly collect
+                their data. If you believe a child has created an account, email
+                us and we will delete it.
+              </p>
+            </section>
+
+            <section>
+              <h2 className="mb-3 text-xl font-semibold">
+                Changes to this policy
+              </h2>
+              <p className="mb-3">
+                When we change something material — a new processor, a new
+                retention window, anything that affects your files — we update
+                the date at the top of this page and, for significant changes,
+                email account holders. Continuing to use the service after a
+                change means you accept the updated policy.
+              </p>
+            </section>
+
+            <section>
+              <h2 className="mb-3 text-xl font-semibold">Contact</h2>
+              <ul className="mb-3 list-disc space-y-1 pl-6">
+                <li>
+                  <strong>Email</strong>:{" "}
+                  <a
+                    href={`mailto:${SUPPORT_EMAIL}`}
+                    className="text-blue-500 hover:underline"
+                  >
+                    {SUPPORT_EMAIL}
+                  </a>
+                </li>
                 {siteConfig.socialLinks?.discord && (
                   <li>
                     <strong>Discord</strong>:{" "}
@@ -387,24 +590,15 @@ export default function PrivacyPolicyPage() {
                       href={siteConfig.socialLinks.discord}
                       className="text-primary hover:underline"
                     >
-                      Discord
-                    </a>
-                  </li>
-                )}
-                {siteConfig.socialLinks?.email && (
-                  <li>
-                    <strong>Email</strong>:{" "}
-                    <a
-                      href={`mailto:${siteConfig.socialLinks.email}`}
-                      className="hover:underline text-blue-500"
-                    >
-                      {siteConfig.socialLinks.email}
+                      Join the server
                     </a>
                   </li>
                 )}
               </ul>
               <p className="mb-3">
-                We will respond to your inquiries as soon as possible.
+                Related: <Link href="/terms-of-service" className="text-primary hover:underline">Terms of Service</Link>
+                {" · "}
+                <Link href="/refund-policy" className="text-primary hover:underline">Refund Policy</Link>
               </p>
             </section>
           </div>

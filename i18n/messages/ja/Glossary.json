@@ -1,6 +1,6 @@
 {
   "title": "用語集",
-  "description": "Next.js SaaS開発の用語と概念の包括的な用語集。",
+  "description": "動画圧縮で出てくる用語をやさしく解説。CRF、ビットレート、H.265、コンテナなど。",
   "emptyState": {
     "title": "用語エントリがありません",
     "description": "現在コンテンツを作成中です。もうしばらくお待ちください！"

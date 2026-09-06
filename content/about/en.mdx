@@ -1,52 +1,108 @@
 ---
-title: About
-description: Learn more about our company and mission
-lastUpdated: "2025-01-01"
+title: About VidSmaller
+description: Who builds VidSmaller, how the compression pipeline actually works, and what happens to your files.
+lastUpdated: "2026-09-06"
 ---
 
-# About
+# About VidSmaller
 
-## Who We Are
+VidSmaller is a video compressor that runs in your browser. Drop in an MP4, MOV, MKV
+or one of 20+ other formats, choose a target, and get a smaller file back — nothing to
+install, no watermark, and no account needed for your first jobs of the day.
 
-[Company Name] is dedicated to [brief description of what your company does]. Founded in [year], we have been [brief history or achievement].
+## Why it exists
 
-## Our Mission
+Every place you send a video has a ceiling. Gmail stops at 25 MB. Discord's free tier
+stops at 10 MB. WhatsApp stops at 16 MB. A 200 MB hero video quietly wrecks your Core
+Web Vitals. And a phone or screen recording is almost always two to ten times larger
+than it needs to be, because the recorder optimises for speed, not size.
 
-Our mission is to [your company's mission statement]. We believe in [core values or principles] and are committed to [what you're committed to delivering].
+There were two ways to fix that, and both were annoying:
 
-## What We Do
+- **Desktop encoders** (HandBrake, FFmpeg) do a great job, but a long 4K export pins
+  your CPU for half an hour, and you have to learn what CRF, presets and pixel formats
+  mean before you get a usable file.
+- **Most web tools** stamp a watermark on the output, cap you at 100 MB, or make you
+  sign up before showing you the result.
 
-We specialize in [your main services/products]:
+VidSmaller is the middle path: the controls of a desktop encoder, running on our
+servers, with the real numbers on screen — and never a watermark.
 
-- **[Service/Product 1]**: [Brief description]
-- **[Service/Product 2]**: [Brief description] 
-- **[Service/Product 3]**: [Brief description]
+## How it actually works
 
-## Our Values
+1. **Your browser uploads straight to our storage bucket.** The file goes directly
+   from your machine to Cloudflare R2 over a one-time signed URL. It never passes
+   through the web server that renders this page.
+2. **The encoder pulls it from there, server to server.** Our processing provider
+   (FreeConvert) fetches the file from our CDN and runs the FFmpeg job with the
+   settings you picked.
+3. **You download the result through us.** The download is proxied by our server, so
+   the storage layer is never exposed.
 
-### 🎯 Excellence
-We strive for excellence in everything we do.
+The detour through our own bucket is not decoration. Our provider meters the upload
+step by wall-clock time, so a slow home connection used to cost us — and eventually
+you — real money. Measured on the same 593 MB file: 6 billed encoder minutes when the
+browser uploaded directly, 4 when the encoder pulled it from our CDN instead. Roughly a
+third cheaper, at identical quality.
 
-### 🤝 Trust  
-Building long-term relationships based on trust and reliability.
+## What we won't do
 
-### 🌟 Innovation
-Continuously improving and embracing new technologies.
+- **No watermark.** Not on the free tier, not anywhere.
+- **We don't train on your footage, resell it, or watch it.** No human at VidSmaller
+  opens your video. There is no ML pipeline pointed at it.
+- **Your files don't linger.** The staged upload is deleted the moment a job reaches a
+  final state, with a 24-hour bucket lifecycle rule as a backstop. The compressed
+  result expires on a timer — see the table below.
+- **No subscription traps.** Cancel from your dashboard in one click; it takes effect
+  at the end of the period you already paid for.
 
-### 💼 Professional
-Delivering professional service with attention to detail.
+## The limits, honestly
 
-## Why Choose Us
+| | Max per file | Files per batch | Credits / month | Result kept for |
+| --- | --- | --- | --- | --- |
+| Not signed in | 200 MB | 1 | — (2 jobs/day) | 2 hours |
+| Free account | 1 GB | 3 | 30 | up to 7 days |
+| Pro — $9/mo | 1.4 GB | 10 | 600 | up to 7 days |
 
-- **Experience**: [Number] years of experience in [industry/field]
-- **Quality**: Committed to delivering high-quality [products/services]
-- **Support**: Dedicated customer support team
-- **Results**: Proven track record of [achievements/results]
+Two numbers deserve an explanation:
 
-## Contact Us
+**Pro says 1.4 GB, not 5 GB.** Our product limit for Pro is 5 GB, but the encoding plan
+we currently pay for won't accept files that large. Rather than sell you a job we know
+would be rejected, the app shows the smaller number. It goes up automatically the day we
+upgrade the encoding plan.
 
-Ready to get started or have questions? We'd love to hear from you:
+**Credits are minutes, with a floor of 3.** One credit compresses one minute of source
+video in H.264; H.265 costs two credits a minute because it takes roughly four times the
+machine time. Every job costs at least 3 credits, because our provider bills a full
+minute for each of the three stages (import, compress, export) no matter how short the
+clip is. If a job fails, its credits go straight back to your balance, automatically.
 
-- **Email**: [your-email@company.com]
-- **Phone**: [your-phone-number]
-- **Address**: [your-address]
+## What we run on
+
+No mystery stack — if something breaks, this is the list we work through:
+
+| Layer | What we use |
+| --- | --- |
+| App + hosting | Next.js on Vercel (US East) |
+| Staged uploads / CDN | Cloudflare R2, served from `cdn.vidsmaller.com` |
+| Encoding | FreeConvert (FFmpeg-based) |
+| Accounts, jobs, credits | Supabase Postgres |
+| Payments | Stripe — we never see your card number |
+| Email | Resend |
+
+## Who's behind it
+
+VidSmaller is independent and self-funded. There's no sales team and no investor
+timeline: the same people who tune the encoder presets answer the support mail. That is
+also why the pages you're reading list actual limits and actual sub-processors instead
+of a paragraph about our passion for innovation.
+
+## Contact
+
+- **Email:** [support@vidsmaller.com](mailto:support@vidsmaller.com) — a human replies,
+  usually within one business day.
+- **Legal:** [Privacy Policy](/privacy-policy) · [Terms of Service](/terms-of-service) ·
+  [Refund Policy](/refund-policy)
+
+Found a file we compress badly? Send it (or a link). Bad cases are the fastest way we
+improve the presets.

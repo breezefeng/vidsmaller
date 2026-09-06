@@ -63,13 +63,21 @@ const MDXComponents: MDXComponentsProps = {
       {...props}
     />
   ),
-  a: (props) => (
-    <a
-      className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors underline underline-offset-4"
-      target="_blank"
-      {...props}
-    />
-  ),
+  a: ({ href, ...props }) => {
+    // Only send off-site links to a new tab; in-page anchors, /paths and
+    // mailto: should open where the reader already is.
+    const isExternal = typeof href === "string" && /^https?:\/\//.test(href);
+    return (
+      <a
+        href={href}
+        className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors underline underline-offset-4"
+        {...(isExternal
+          ? { target: "_blank", rel: "noopener noreferrer" }
+          : {})}
+        {...props}
+      />
+    );
+  },
   ul: (props) => <ul className="list-disc pl-6 mt-0 mb-6" {...props} />,
   ol: (props) => <ol className="list-decimal pl-6 mt-0 mb-6" {...props} />,
   li: (props) => (

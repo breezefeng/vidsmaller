@@ -118,7 +118,7 @@
   },
   "Blogs": {
     "title": "博客列表",
-    "description": "分享 Next.js 生态圈和 NEXTY.DEV 模板动态。",
+    "description": "关于把视频文件变小的实用指南：编解码、码率、各平台上传上限，以及到底什么在影响画质。",
     "emptyState": {
       "title": "暂无博客文章",
       "description": "我们正在创作精彩内容，敬请期待！"
@@ -142,8 +142,8 @@
     }
   },
   "About": {
-    "title": "关于我们",
-    "description": "关于我们"
+    "title": "关于 VidSmaller",
+    "description": "VidSmaller 是谁做的、压缩流程到底怎么跑的，以及你的文件最后去了哪里。"
   },
   "ErrorPage": {
     "403": {
@@ -233,8 +233,8 @@
     "TermsOfService": "条款与条件",
     "RefundPolicy": "退款政策",
     "Newsletter": {
-      "title": "订阅我们的邮件",
-      "description": "获取最新的更新和教程",
+      "title": "偶尔写点压缩心得",
+      "description": "新功能，以及把视频变小的实用技巧。不发广告，一键退订。",
       "subscribe": {
         "invalidEmail": "请输入有效的邮箱地址",
         "defaultErrorMessage": "订阅失败，请稍后再试",
@@ -243,9 +243,9 @@
       },
       "unsubscribe": {
         "title": "退订邮件通知",
-        "success": "您已成功退订 Nexty 邮件通知。",
+        "success": "您已成功退订 VidSmaller 邮件通知。",
         "emailPrefix": "邮箱：",
-        "regretMessage": "您随时可以重新订阅邮件，获取 Nexty 最新更新和教程。",
+        "regretMessage": "您随时可以重新订阅，获取 VidSmaller 的最新更新。",
         "errorGeneric": "处理您的退订请求时发生错误",
         "errorNoToken": "未提供退订令牌",
         "errorMessage": "请确保您使用了正确的退订链接。如果问题持续存在，请联系我们的客服团队获取帮助。",

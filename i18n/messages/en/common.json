@@ -118,7 +118,7 @@
   },
   "Blogs": {
     "title": "Blog Posts",
-    "description": "Insights on Next.js ecosystem and NEXTY.DEV template updates.",
+    "description": "Guides on shrinking video files: codecs, bitrates, platform size limits and what actually changes quality.",
     "emptyState": {
       "title": "No blog posts",
       "description": "We are creating exciting content, please stay tuned!"
@@ -142,8 +142,8 @@
     }
   },
   "About": {
-    "title": "About",
-    "description": "About the site"
+    "title": "About VidSmaller",
+    "description": "Who builds VidSmaller, how the compression pipeline actually works, and what happens to your files."
   },
   "ErrorPage": {
     "403": {
@@ -233,8 +233,8 @@
     "TermsOfService": "Terms of Service",
     "RefundPolicy": "Refund Policy",
     "Newsletter": {
-      "title": "Subscribe to our newsletter",
-      "description": "Stay up to date with our latest news.",
+      "title": "Compression tips, occasionally",
+      "description": "New features and practical guides to smaller video files. No spam, unsubscribe in one click.",
       "subscribe": {
         "invalidEmail": "Please enter a valid email address",
         "defaultErrorMessage": "Subscription failed. Please try again later",

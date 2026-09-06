@@ -118,7 +118,7 @@
   },
   "Blogs": {
     "title": "ブログ記事",
-    "description": "Next.jsエコシステムとNexty.devテンプレートの最新情報をお届けします。",
+    "description": "動画を小さくするための実用ガイド。コーデック、ビットレート、各プラットフォームの容量制限、そして画質を左右する要素について。",
     "emptyState": {
       "title": "記事がありません",
       "description": "現在コンテンツを作成中です。もうしばらくお待ちください！"
@@ -142,8 +142,8 @@
     }
   },
   "About": {
-    "title": "About",
-    "description": "About the site"
+    "title": "VidSmaller について",
+    "description": "VidSmaller を作っているのは誰か、圧縮パイプラインの実際の仕組み、そしてアップロードしたファイルの行き先。"
   },
   "ErrorPage": {
     "403": {
@@ -233,8 +233,8 @@
     "TermsOfService": "利用規約",
     "RefundPolicy": "返金ポリシー",
     "Newsletter": {
-      "title": "ニュースレターのご案内",
-      "description": "最新情報を定期的にお届けいたします",
+      "title": "圧縮のヒントをときどき",
+      "description": "新機能と、動画を小さくする実用的なガイドをお届けします。スパムなし、解除はワンクリック。",
       "subscribe": {
         "invalidEmail": "メールアドレスの形式が正しくありません",
         "defaultErrorMessage": "登録処理に失敗しました。恐れ入りますが、時間をおいて再度お試しください",
@@ -243,9 +243,9 @@
       },
       "unsubscribe": {
         "title": "ニュースレター配信停止",
-        "success": "Nextyニュースレターの配信停止が完了しました。",
+        "success": "VidSmaller メールの配信停止が完了しました。",
         "emailPrefix": "メールアドレス：",
-        "regretMessage": "いつでも再登録して、Nextyの最新アップデートやチュートリアルを受け取ることができます。",
+        "regretMessage": "いつでも再登録して、VidSmaller の最新情報を受け取れます。",
         "errorGeneric": "配信停止の処理中にエラーが発生しました",
         "errorNoToken": "配信停止トークンが提供されていません",
         "errorMessage": "正しい配信停止リンクを使用していることをご確認ください。問題が解決しない場合は、サポートチームまでお問い合わせください。",
