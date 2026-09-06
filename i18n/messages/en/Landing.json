@@ -144,7 +144,7 @@
       },
       {
         "question": "What happens to my files?",
-        "answer": "Your video is uploaded straight to the encoding service, processed, and deleted automatically once the retention window ends — two hours for anonymous jobs. We never train on, share or resell your footage."
+        "answer": "Your browser uploads it straight to our own storage bucket over a one-time link, the encoder pulls it from there, and that staged copy is deleted the moment the job finishes. The compressed result expires after two hours for anonymous jobs, up to seven days when you are signed in. We never watch, train on, share or resell your footage."
       },
       {
         "question": "Which formats can I upload?",
@@ -156,7 +156,7 @@
       },
       {
         "question": "What is a credit?",
-        "answer": "One credit compresses one minute of video with H.264. H.265 costs two credits per minute because it takes more machine time. If a job fails, the credits go straight back to your balance."
+        "answer": "One credit compresses one minute of video with H.264. H.265 costs two credits per minute because it takes more machine time. Every job has a three-credit floor, since our encoder bills a full minute for each of the import, compress and export stages. If a job fails, the credits go straight back to your balance."
       },
       {
         "question": "Can I compress a 4K or 1 GB file?",
