@@ -159,8 +159,8 @@
         "answer": "One credit compresses one minute of video with H.264. H.265 costs two credits per minute because it takes more machine time. If a job fails, the credits go straight back to your balance."
       },
       {
-        "question": "Can I compress a 4K or 10 GB file?",
-        "answer": "Yes, on the higher plans. Free accounts cap out at 1 GB per file, Pro at 5 GB and Max at 10 GB."
+        "question": "Can I compress a 4K or 1 GB file?",
+        "answer": "Yes. Free accounts cap out at 1 GB per file, Pro at 1.4 GB. 4K works on every plan — it just costs more credits, because bigger frames take longer to encode."
       }
     ]
   },
