@@ -57,9 +57,15 @@ export interface CompressItem {
 let counter = 0;
 const nextKey = () => `item-${Date.now().toString(36)}-${counter++}`;
 
-export function useCompressor() {
+export function useCompressor(initialSettings?: CompressSettings) {
   const [items, setItems] = useState<CompressItem[]>([]);
-  const [settings, setSettings] = useState<CompressSettings>(DEFAULT_SETTINGS);
+  // Landing pages for a specific upload ceiling (/compress-video-for-discord
+  // and friends) hand us a target-size preset, so the visitor arrives with the
+  // right number already in the box instead of having to translate "Discord
+  // allows 20 MB" into a setting themselves.
+  const [settings, setSettings] = useState<CompressSettings>(
+    initialSettings ?? DEFAULT_SETTINGS
+  );
   const [context, setContext] = useState<CompressorContext | null>(null);
   const t = useTranslations('Compressor.errors');
   const [globalError, setGlobalError] = useState<string | null>(null);

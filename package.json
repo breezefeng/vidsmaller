@@ -22,6 +22,9 @@
     "db:seed": "tsx lib/db/seed/index.ts",
     "db:export-pricing": "tsx lib/db/seed/export.ts",
     "test:freeconvert": "node scripts/test-freeconvert.mjs",
+    "check:i18n": "node scripts/check-i18n-parity.mjs",
+    "seo:images": "node scripts/seo-images.mjs",
+    "seo:images:plan": "node scripts/seo-images.mjs --dry-run",
     "db:up": "docker compose up -d",
     "db:down": "docker compose down"
   },

@@ -2,7 +2,9 @@
   "Home": {
     "title": "VidSmaller",
     "tagLine": "Compress video online — free, fast, no watermark",
-    "description": "VidSmaller shrinks MP4, MOV, MKV and 20+ other video formats by up to 90% in the cloud. No install, no watermark, no quality cliff."
+    "description": "VidSmaller shrinks MP4, MOV, MKV and 20+ other video formats by up to 90% in the cloud. No install, no watermark, no quality cliff.",
+    "metaTitle": "Free Online Video Compressor — Compress MP4 Without Losing Quality",
+    "metaDescription": "Compress video online for free. Reduce MP4, MOV, MKV and 20+ formats by up to 90% to hit an exact file size for email, Discord or the web. No watermark, no install, no sign-up to try."
   },
   "Login": {
     "title": "Welcome back",
@@ -214,7 +216,7 @@
       },
       {
         "name": "How it works",
-        "href": "/#use-cases"
+        "href": "/#how-to"
       },
       {
         "name": "FAQ",
@@ -278,6 +280,10 @@
               "name": "Pricing"
             },
             {
+              "href": "/#formats",
+              "name": "Formats"
+            },
+            {
               "href": "/#faq",
               "name": "FAQ"
             }
@@ -320,7 +326,8 @@
             }
           ]
         }
-      ]
+      ],
+      "compressFor": "Compress for"
     }
   }
 }

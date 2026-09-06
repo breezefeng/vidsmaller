@@ -1,5 +1,6 @@
 import { Newsletter } from "@/components/footer/Newsletter";
 import { TwitterX } from "@/components/social-icons/icons";
+import { PLATFORMS, toolSlug } from "@/config/platforms";
 import { siteConfig } from "@/config/site";
 import { Link as I18nLink } from "@/i18n/routing";
 import { FooterLink } from "@/types/common";
@@ -15,7 +16,25 @@ export default async function Footer() {
   const t = await getTranslations("Home");
   const tFooter = await getTranslations("Footer");
 
+  const tTools = await getTranslations("Tools");
+
   const footerLinks: FooterLink[] = tFooter.raw("Links.groups");
+
+  // Generated from config/platforms.ts rather than duplicated into the
+  // translation files, so adding a platform page adds its footer link
+  // automatically and the slug can only be wrong in one place.
+  //
+  // This is the single highest-leverage internal link block on the site: it
+  // points every page at all eight commercial-intent pages.
+  const toolsGroup: FooterLink = {
+    title: tFooter("Links.compressFor"),
+    links: PLATFORMS.map((p) => ({
+      href: `/${toolSlug(p)}`,
+      name: tTools(`platforms.${p.key}.name`),
+    })),
+  };
+  footerLinks.splice(1, 0, toolsGroup);
+
   footerLinks.forEach((group) => {
     const pricingLink = group.links.find((link) => link.id === "pricing");
     if (pricingLink) {

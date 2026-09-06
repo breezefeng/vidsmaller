@@ -1,6 +1,7 @@
 import { listPublishedPostsAction } from '@/actions/posts/posts'
+import { TOOL_SLUGS } from '@/config/platforms'
 import { siteConfig } from '@/config/site'
-import { DEFAULT_LOCALE, LOCALES } from '@/i18n/routing'
+import { DEFAULT_LOCALE, LOCALE_TO_HREFLANG, LOCALES } from '@/i18n/routing'
 import { blogCms } from '@/lib/cms'
 import { db } from '@/lib/db'
 import { posts as postsSchema } from '@/lib/db/schema'
@@ -12,6 +13,32 @@ const siteUrl = siteConfig.url
 const STATIC_PAGE_MTIME = new Date(new Date().getFullYear(), 0, 1)
 
 type ChangeFrequency = 'always' | 'hourly' | 'daily' | 'weekly' | 'monthly' | 'yearly' | 'never' | undefined
+
+/** `''` -> `https://vidsmaller.com`, `'/blog'` -> `https://vidsmaller.com/ja/blog`. */
+function localeUrl(locale: string, path: string): string {
+  const prefix = locale === DEFAULT_LOCALE ? '' : `/${locale}`
+  return `${siteUrl}${prefix}${path}`
+}
+
+/**
+ * hreflang alternates for a locale-prefixed path.
+ *
+ * Next serialises these as `<xhtml:link rel="alternate" hreflang="...">` inside
+ * each `<url>`. Without them Google has to infer the relationship between
+ * /blog, /zh/blog and /ja/blog from the page markup alone, and treats the three
+ * as competing duplicates more often than not.
+ */
+function alternates(path: string) {
+  const languages = Object.fromEntries(
+    LOCALES.map((locale) => [LOCALE_TO_HREFLANG[locale] ?? locale, localeUrl(locale, path)])
+  )
+  return {
+    languages: {
+      ...languages,
+      'x-default': localeUrl(DEFAULT_LOCALE, path),
+    },
+  }
+}
 
 /**
  * The sitemap is generated at build time. A missing or unreachable database
@@ -38,19 +65,33 @@ async function latestPostMtime(
 }
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  // Static pages
-  const staticPages = [
-    '',
+  // Locale-prefixed static pages.
+  //
+  // changeFrequency is a hint, not a promise, and claiming 'daily' on a page
+  // that changes twice a year teaches Google to ignore the field. These are the
+  // real cadences.
+  const staticPages: { path: string; priority: number; changeFrequency: ChangeFrequency }[] = [
+    { path: '', priority: 1.0, changeFrequency: 'weekly' },
+    { path: '/pricing', priority: 0.9, changeFrequency: 'monthly' },
+    { path: '/about', priority: 0.5, changeFrequency: 'yearly' },
   ]
 
-  const pages = LOCALES.flatMap(locale => {
-    return staticPages.map(page => ({
-      url: `${siteUrl}${locale === DEFAULT_LOCALE ? '' : `/${locale}`}${page}`,
+  // The platform pages (/compress-video-for-discord etc). High priority: these
+  // are money pages with commercial intent, and their limits move — monthly is
+  // an honest cadence, not a bid for extra crawl budget.
+  for (const slug of TOOL_SLUGS) {
+    staticPages.push({ path: `/${slug}`, priority: 0.9, changeFrequency: 'monthly' })
+  }
+
+  const pages: MetadataRoute.Sitemap = LOCALES.flatMap(locale =>
+    staticPages.map(page => ({
+      url: localeUrl(locale, page.path),
       lastModified: STATIC_PAGE_MTIME,
-      changeFrequency: 'daily' as ChangeFrequency,
-      priority: page === '' ? 1.0 : 0.8,
+      changeFrequency: page.changeFrequency,
+      priority: page.priority,
+      alternates: alternates(page.path),
     }))
-  })
+  )
 
   // Legal pages are not locale-prefixed (app/(site)) but must be indexable:
   // the Google OAuth consent screen links to them.
@@ -73,12 +114,18 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Add blog list page
   for (const locale of LOCALES) {
     allBlogSitemapEntries.push({
-      url: `${siteUrl}${locale === DEFAULT_LOCALE ? '' : `/${locale}`}/blog`,
+      url: localeUrl(locale, '/blog'),
       lastModified: blogContentMtime,
-      changeFrequency: 'daily' as ChangeFrequency,
+      changeFrequency: 'weekly' as ChangeFrequency,
       priority: 0.8,
+      alternates: alternates('/blog'),
     });
   }
+
+  // NOTE: individual posts deliberately carry no alternates. A localised post
+  // is free to use a localised slug, so the cross-locale URL cannot be derived
+  // by prefixing — it needs a real translation-group id on the post record.
+  // Wire that up when the first post ships in more than one language.
 
   for (const locale of LOCALES) {
     const { posts: localPosts } = await blogCms.getLocalList(locale);
@@ -129,10 +176,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Add glossary list page
   for (const locale of LOCALES) {
     allGlossarySitemapEntries.push({
-      url: `${siteUrl}${locale === DEFAULT_LOCALE ? '' : `/${locale}`}/glossary`,
+      url: localeUrl(locale, '/glossary'),
       lastModified: glossaryContentMtime,
-      changeFrequency: 'daily' as ChangeFrequency,
+      changeFrequency: 'weekly' as ChangeFrequency,
       priority: 0.8,
+      alternates: alternates('/glossary'),
     });
   }
 

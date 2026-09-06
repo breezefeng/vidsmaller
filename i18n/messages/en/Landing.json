@@ -3,9 +3,9 @@
     "badge": {
       "label": "FREE",
       "text": "No watermark, no sign-up to try",
-      "href": "/#pricing"
+      "href": "/pricing"
     },
-    "title": "Make any video smaller — without making it look worse",
+    "title": "Free Online Video Compressor",
     "description": "Drop in an MP4, MOV, MKV or 20+ other formats and VidSmaller shrinks it by up to 90% in the cloud. No software to install, no watermark, no quality cliff.",
     "getStarted": "Compress a video",
     "getStartedLink": "/#compress",
@@ -13,7 +13,8 @@
       "noWatermark": "Never adds a watermark",
       "fast": "Cloud encoding, no CPU melt",
       "private": "Auto-deleted after processing"
-    }
+    },
+    "subtitle": "Make any video smaller — without making it look worse"
   },
   "Features": {
     "badge": {
@@ -42,7 +43,7 @@
     "items": [
       {
         "title": "Hit an exact file size",
-        "description": "Need it under 25 MB for email, 10 MB for Discord, or 16 MB for WhatsApp? Type the number and we encode to fit it.",
+        "description": "Need it under 18 MB for email, 20 MB for Discord, or 16 MB for WhatsApp? Type the number and we encode to fit it.",
         "details": [
           {
             "title": "Target size mode",
@@ -96,6 +97,29 @@
       }
     ]
   },
+  "HowTo": {
+    "badge": {
+      "label": "HOW IT WORKS",
+      "text": "Three steps, about a minute"
+    },
+    "title": "How to compress a video online",
+    "description": "No account needed to try it, and nothing to install. The whole thing happens in your browser and on our encoders.",
+    "steps": [
+      {
+        "name": "Upload your video",
+        "text": "Drag an MP4, MOV, MKV, AVI, WebM or any of 20+ other formats onto the box above, or click to browse. Your browser sends the file straight to our storage over a one-time upload link — it never passes through a third party. Signed-out visitors can upload up to 200 MB per file; signing in raises that to 1 GB."
+      },
+      {
+        "name": "Choose how small you need it",
+        "text": "Pick a preset — Light, Balanced, Strong or Extreme — if you just want it smaller. Pick Target size and type a number (18 MB for Gmail, 20 MB for free Discord, 16 MB for WhatsApp) if you have a hard ceiling to clear. Advanced mode exposes CRF, resolution, frame rate, max bitrate and the H.264 / H.265 choice."
+      },
+      {
+        "name": "Download the compressed file",
+        "text": "Encoding runs on our servers, so your laptop fans stay quiet and you can close the tab. Come back to the same link and the file is waiting — with no watermark on it, on any plan. The staged upload is deleted the moment the job finishes."
+      }
+    ],
+    "note": "Most clips under five minutes finish in under a minute. Longer files and H.265 output take proportionally longer, because H.265 is roughly 3.8× slower to encode than H.264."
+  },
   "UseCases": {
     "badge": {
       "label": "USE CASES",
@@ -106,7 +130,7 @@
     "cases": [
       {
         "title": "Email & messaging",
-        "description": "Gmail stops at 25 MB, WhatsApp at 16 MB, Discord at 10 MB on the free tier. Set a target size and send it in one go.",
+        "description": "Gmail stops at 25 MB but really means 18 MB, WhatsApp at 16 MB, Discord at 20 MB on the free tier. Set a target size and send it in one go.",
         "icon": "Mail"
       },
       {
@@ -123,6 +147,40 @@
         "title": "Storage & archives",
         "description": "Screen recordings, drone footage and phone clips pile up fast. Bulk-compress and reclaim your drive.",
         "icon": "HardDrive"
+      }
+    ]
+  },
+  "Specs": {
+    "badge": {
+      "label": "FORMATS & SETTINGS",
+      "text": "What you actually get"
+    },
+    "title": "Formats, codecs and compression modes",
+    "description": "The short version: if a video player can open it, VidSmaller can probably shrink it.",
+    "groups": [
+      {
+        "title": "Input formats",
+        "body": "MP4, MOV, MKV, AVI, WebM, FLV, WMV, M4V, MPEG, MPG, 3GP, TS, MTS, M2TS, VOB, OGV, ASF, RM, DivX and more — 20+ containers in total. Phone recordings, screen captures, drone footage, DSLR clips, Zoom and Teams exports, OBS recordings and GoPro files all work as-is."
+      },
+      {
+        "title": "Output containers",
+        "body": "MP4 (the safe default — plays on every phone, browser, TV and editor), MKV, WebM and MOV. Keeping the container as MP4 with H.264 video is what you want for email attachments, Discord, WhatsApp and anything that has to play on someone else's device."
+      },
+      {
+        "title": "Video codecs",
+        "body": "H.264 / AVC is the default because compatibility is perfect and encoding is fast. H.265 / HEVC produces files roughly 30% smaller at matching visual quality, which matters on large archives — but it is slower to encode and older devices and some browsers will refuse to play it. If the file is going to someone else, stay on H.264."
+      },
+      {
+        "title": "Compression modes",
+        "body": "Target size encodes two-pass to land on a file size you type in. Constant quality (CRF) holds a fixed perceptual quality and lets the size fall where it may — CRF 18 is visually lossless, 23 is a sane default, 28 is small and noticeably softer. Max bitrate caps the data rate for streaming. Resolution scaling drops 4K to 1080p or 1080p to 720p, which is usually the single biggest win. Presets bundle sensible combinations of all of the above."
+      },
+      {
+        "title": "What actually makes a video big",
+        "body": "Four things, in rough order of impact: resolution, bitrate, duration and codec. A 4K clip carries four times the pixels of 1080p; if it will only ever be watched on a phone, scaling down costs you nothing visible and saves the most. Bitrate is the next lever — phone and screen recordings are usually encoded far above what the content needs, which is why they routinely drop 70–90% with no visible change. Frame rate matters less than people expect: going 60fps to 30fps saves far less than dropping one resolution step."
+      },
+      {
+        "title": "Limits",
+        "body": "Signed-out: 200 MB per file, a couple of jobs per day. Free account: 1 GB per file. Pro: 1.4 GB per file plus the batch queue and H.265. 4K works on every plan — it just consumes more credits, because larger frames take longer to encode."
       }
     ]
   },
@@ -161,6 +219,30 @@
       {
         "question": "Can I compress a 4K or 1 GB file?",
         "answer": "Yes. Free accounts cap out at 1 GB per file, Pro at 1.4 GB. 4K works on every plan — it just costs more credits, because bigger frames take longer to encode."
+      },
+      {
+        "question": "How do I compress a video to under 25 MB for email?",
+        "answer": "Use Target size mode and type 25 MB — or 24 to leave headroom, since Gmail counts the encoded attachment, not the raw file. We encode two-pass to land under that ceiling. For a clip longer than about ten minutes, 25 MB will look rough at 1080p; drop the resolution to 720p first and it will hold up much better at the same file size."
+      },
+      {
+        "question": "Is compressing a video online safe?",
+        "answer": "It depends entirely on the operator, so here is exactly what we do. Your browser uploads over a one-time signed link to storage we control. The encoder pulls it from there server-to-server. The staged copy is deleted the moment the job settles, and the compressed result expires after two hours for anonymous jobs or up to seven days when you are signed in. We do not watch, train on, share or resell your footage, and nothing is ever passed to an advertising network."
+      },
+      {
+        "question": "Will compressing reduce my video quality?",
+        "answer": "Technically yes — this is lossy compression, so information is discarded. Practically, whether you can see it depends on how much slack the original had. Most phone recordings, screen captures and exports from editing software are encoded well above what the content needs, so removing 70% of the file changes nothing you can perceive. Footage that is already tightly compressed has no slack left, and pushing it hard will show. Start with Balanced and only go stronger if the result still looks fine to you."
+      },
+      {
+        "question": "H.264 or H.265 — which should I pick?",
+        "answer": "H.264 unless you have a specific reason. It plays on literally everything and encodes fast. H.265 gives you roughly 30% smaller files at the same visual quality, which is worth it when you are archiving a lot of footage or when the file only has to play on your own recent hardware. It is a bad choice for anything you are sending to someone else, because older phones, older TVs and some browsers will simply refuse to open it."
+      },
+      {
+        "question": "Can I compress several videos at once?",
+        "answer": "Yes, with an account. Queue as many clips as you like and they run one after another on our servers while you do something else. You can close the tab; the queue keeps going and the finished files are waiting when you come back."
+      },
+      {
+        "question": "Does VidSmaller work on iPhone, Android and Chromebook?",
+        "answer": "Yes. There is nothing to install — it runs in any modern browser, and because the encoding happens on our servers rather than your device, a Chromebook or a three-year-old phone compresses a 4K file exactly as fast as a workstation does."
       }
     ]
   },
