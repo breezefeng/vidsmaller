@@ -217,7 +217,7 @@ the eight events `app/api/stripe/webhook/route.ts` actually handles.
 `PLAN_TIER_MAP` maps plan uuids to compressor tiers and is already set for both
 the `test` and `live` rows.
 
-### 6. Email — sending done, receiving not
+### 6. Email — done, both directions
 
 > Corrected 2026-09-06. This section said the three Resend records were missing
 > and that no mail could be delivered. They are published and the domain is
@@ -235,30 +235,56 @@ records now live on the zone:
 | MX | `send` | `feedback-smtp.us-east-1.amazonses.com` | 10 |
 | TXT | `send` | `v=spf1 include:amazonses.com ~all` | — |
 
-**Inbound does not.** The root domain has no MX record, so
-`support@vidsmaller.com` — printed on the About page and all three legal pages —
-bounces. Resend's own `receiving` capability is `disabled`, and its inbound
-product delivers to a webhook, which would mean writing a forwarding service for
-a support mailbox. Cloudflare Email Routing is free and forwards to an inbox you
-already read:
+**Inbound works too, as of 2026-09-06.** `support@vidsmaller.com` is printed on
+the About page and all three legal pages, and until that day the root domain had
+no MX at all, so every one of those invitations bounced. It now forwards to
+`breezeszfeng@gmail.com` through **Cloudflare Email Routing** (account-level UI:
+Email Service → Email Routing; the old per-zone `/email/routing` URL redirects).
+
+Resend was not an option for the inbound half: this domain's `receiving`
+capability is `disabled`, and Resend's inbound product delivers to a webhook,
+which would mean writing a forwarding service just to read support mail.
+
+| Record | Owner | Note |
+| --- | --- | --- |
+| MX `vidsmaller.com` → `route1/2/3.mx.cloudflare.net` (89/40/47) | Email Routing | locked by Cloudflare |
+| TXT `vidsmaller.com` → `v=spf1 include:_spf.mx.cloudflare.net ~all` | Email Routing | |
+| TXT `cf2024-1._domainkey` | Email Routing | Cloudflare's own DKIM |
+| MX/TXT on `send.` + `resend._domainkey` | Resend | untouched |
+
+The two halves do not collide: Resend's SPF and MX live on `send.`, and SPF is
+checked against the Return-Path domain, so root SPF listing only Cloudflare does
+not affect Resend's outbound.
+
+To add `billing@` or similar later: Email Routing → the zone → 路由规则 →
+创建路由规则. A destination address that equals the Cloudflare account's own
+login email is auto-verified, so no confirmation click is needed for it.
+
+Verify the whole chain from a shell:
 
 ```bash
-node scripts/setup-email-routing.mjs --to=you@example.com          # dry run
-node scripts/setup-email-routing.mjs --to=you@example.com --apply
-node scripts/setup-email-routing.mjs --status
+dig +short MX vidsmaller.com                      # expect the three route*.mx hosts
+curl -s -H "Authorization: Bearer $RESEND_API_KEY" \
+     https://api.resend.com/emails/<id> | jq .last_event
 ```
 
-Needs a `CLOUDFLARE_API_TOKEN` with Zone:Read, Zone Settings:Edit, Email Routing
-Rules:Edit and Account → Email Routing Addresses:Edit. The script refuses to run
-if the root already has a non-Cloudflare MX, so it cannot silently hijack an
-existing mailbox. One step it cannot do for you: Cloudflare emails the
-destination a verification link, and forwarding stays dead until a human clicks
-it.
+**If mail to an address silently stops arriving, check the suppression list
+before anything else:**
 
-Root MX and Resend's `send.` MX do not conflict — different names.
+```bash
+curl -s -H "Authorization: Bearer $RESEND_API_KEY" https://api.resend.com/suppressions
+curl -s -X DELETE -H "Authorization: Bearer $RESEND_API_KEY" \
+     https://api.resend.com/suppressions/<id>
+```
 
-To reply *as* support@vidsmaller.com afterwards, add it in Gmail under "Send mail
-as" with SMTP host `smtp.resend.com`, port 587, username `resend`, password =
+One hard bounce puts the recipient on that list permanently and every later send
+returns `last_event: suppressed` — no error, no delivery. It bit us during this
+setup: a test sent while Cloudflare was still syncing got `550 5.1.1 Address
+does not exist`, and the retry after the fix was suppressed rather than sent.
+The entry has been removed.
+
+To reply *as* support@vidsmaller.com, add it in Gmail under "Send mail as" with
+SMTP host `smtp.resend.com`, port 587, username `resend`, password =
 `RESEND_API_KEY`.
 
 ### 7. Rate limiting — done
@@ -466,9 +492,8 @@ Re-verified 2026-09-06 after the switch to R2 staging, **from a real browser**
 
 - [ ] Upgrade the FreeConvert plan (20 free minutes will run out fast)
 - [x] Publish the three Resend DNS records so email can actually send
-- [ ] Point `support@vidsmaller.com` at a real inbox
-      (`scripts/setup-email-routing.mjs`) — it is on four public pages and
-      currently bounces
+- [x] Point `support@vidsmaller.com` at a real inbox — Cloudflare Email Routing
+      → breezeszfeng@gmail.com, verified end to end 2026-09-06
 - [ ] Test a real checkout once before announcing anything
 - [ ] Upgrade FreeConvert — this is now the only thing gating real traffic
 - [ ] Replace `public/logo.png` / favicon with real branding
