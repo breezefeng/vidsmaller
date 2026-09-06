@@ -131,19 +131,46 @@ FreeConvert 的 HTTP 客户端会归一化 URL 把它们丢掉 → 一律 403
 额外收益：旧的兜底流程是「建 job → 直传失败 → 再建一个 job」，白烧一遍
 operations，改默认后消失。
 
-### ① 去掉 export task —— 暂不做
+### ① 去掉 export task —— 暂不做（经济账不划算，不是技术门槛）
 
-技术上可行且已验证：compress task 的 result 里本来就带 `url`，下载内容与
+技术上完全可行，已验证：compress task 的 result 本来就带 `url`，下载内容与
 export 的 **md5 完全一致**，有效期也一样。
 
-但 compress 的 URL 尾巴是 UUID，而下载路由是 302 跳转，浏览器会按 URL 存文件名
-→ 用户拿到 `39c54aa3-88ab-4d65-9e1d-849972043634.mp4`。实测 FreeConvert 的下载
-服务器只返回 `content-disposition: attachment`（不带 filename），且不认
-`?filename=` 等任何查询参数；compress task 本身也忽略 `filename` 字段。
+阻碍只有一个：**文件名**。compress 的 URL 尾巴是 UUID，下载路由是 302 跳转，
+浏览器按 URL 存名 → 用户拿到 `39c54aa3-88ab-....mp4`。已排除的方法：
 
-对一个「把视频还给用户」的工具，文件名不是可选项。这 1 分钟（$0.0087/次）值。
-**解锁条件**：上一个 Cloudflare Worker 做下载代理、改写 Content-Disposition，
-那时再省这 17%。
+- FreeConvert 下载服务器只返回 `content-disposition: attachment`（不带 filename）
+- 不认 `?filename=` / `?response-content-disposition=` 等任何查询参数
+- compress task 忽略 `filename` 字段
+- `import/url` 的 `filename` 也不会被 compress 输出继承
+
+**可行的四条路**（都不需要迁移到 Cloudflare）：
+
+| 方案 | 新基建 | 代价 |
+|---|---|---|
+| 客户端 blob 重命名 | 无 | 整个文件进内存 |
+| Next.js 路由代理（`COMPRESS_PROXY_DOWNLOADS=true`，代码已有） | 无 | Vercel 60s 上限 + 出网带宽费 |
+| File System Access API | 无 | 仅 Chrome/Edge |
+| Cloudflare Worker 代理 | 有 | 要写要部署 |
+
+最省事的是第一条 —— 实测 FreeConvert 下载服务器返回
+`access-control-allow-origin: *`，浏览器可以跨域 fetch 后自己改名，后端一行不用改：
+
+```js
+const res = await fetch(`/api/compress/jobs/${id}/download`); // 自动跟 302
+const blob = await res.blob();
+// a.download = 'demo-compressed.mp4'
+```
+
+配合 `job.outputSize` 按大小分流（小文件走 blob，大文件退回 302）即可。
+
+**为什么现在不做**：省 1 分钟/任务，典型任务 4 → 3，Basic 的容量从 375 → 500
+个任务/月（+33%），折钱只有 $3–4/月。而真到了逼近 375 个任务/月那天，
+**升级 FC Pro（$29.99）4000 分钟 = +167% 容量，还送 5GB 上限 + GPU 编码，
+只需改一个单词** —— 几乎肯定比动下载体验划算。
+
+所以这条优化很可能永远不需要做。只有规模大到 FC Pro 也不够、且带宽成本开始
+成为主要支出时，才轮到它。
 
 ## 8. 已上线的修复清单
 
@@ -164,7 +191,23 @@ node scripts/e2e-compress.mjs <video.mp4>   # 端到端跑一次，输出真实�
 node scripts/fc-benchmark.mjs <video.mp4>   # 只测 provider 层
 node scripts/fc-cost-model.mjs              # 成本模型
 node scripts/fc-usage.mjs                   # 线上用量 + 升级信号
+node scripts/r2-staging-check.mjs [--clean] # 暂存区堆积 / 生命周期规则体检
 ```
+
+## 10. R2 暂存区治理
+
+Cloudflare 上已配置生命周期规则（R2 → vidsmaller → 设置 → 对象生命周期规则）：
+
+| 规则名 | 前缀 | 操作 |
+|---|---|---|
+| `expire-compress-input` | `compress-input/` | 1 天后删除对象 |
+
+任务进终态时 `syncJob` 会主动删除暂存对象，但有漏网路径：用户关页面、上传中断、
+或任务在创建前就失败。实测时就抓到过 2 个 60MB 的孤儿文件。规则是兵底。
+
+注意：现有的 `R2_ACCESS_KEY_ID` 是 Object Read & Write 范围，**改不了桶级配置**
+（`GetBucketLifecycleConfiguration` 直接 AccessDenied）。要用代码管理生命周期规则，
+需要另建一个 Admin 范围的 R2 token 或 Cloudflare API token。
 
 生成测试素材：
 
