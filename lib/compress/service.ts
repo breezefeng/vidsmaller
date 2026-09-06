@@ -1,6 +1,7 @@
 import 'server-only';
 
-import { estimateCredits, TIER_LIMITS } from '@/config/compress';
+import { billedMinutes, estimateCredits, TIER_LIMITS } from '@/config/compress';
+import { recordProviderMinutes } from '@/lib/compress/budget';
 import { refundCredits } from '@/lib/compress/credits';
 import { deleteStagedObject } from '@/lib/compress/staging';
 import { db } from '@/lib/db';
@@ -15,7 +16,7 @@ import {
   getJob,
 } from '@/lib/freeconvert/client';
 import { TASK_COMPRESS, TASK_EXPORT } from '@/lib/freeconvert/presets';
-import type { FCJob } from '@/lib/freeconvert/types';
+import type { FCJob, FCTask } from '@/lib/freeconvert/types';
 import { and, eq, isNull } from 'drizzle-orm';
 
 /** Public shape returned to the browser. */
@@ -69,6 +70,37 @@ export function toJobView(job: CompressionJob): JobView {
   };
 }
 
+function spanSeconds(
+  start?: string | null,
+  end?: string | null
+): number | null {
+  if (!start || !end) return null;
+  const ms = new Date(end).getTime() - new Date(start).getTime();
+  return Number.isFinite(ms) && ms >= 0 ? ms / 1000 : null;
+}
+
+function taskSeconds(task?: FCTask): number | null {
+  const t = task as Record<string, unknown> | undefined;
+  return spanSeconds(
+    t?.startedAt as string | undefined,
+    t?.endedAt as string | undefined
+  );
+}
+
+/**
+ * The provider's actual bill for a job: every task is rounded up on its own,
+ * with a one-minute floor, so a three-task pipeline can never cost less than
+ * three minutes. Tasks that never ran contribute nothing.
+ */
+function billedMinutesForJob(fcJob: FCJob): number {
+  let total = 0;
+  for (const task of fcJob.tasks ?? []) {
+    const seconds = taskSeconds(task);
+    if (seconds !== null) total += billedMinutes(seconds);
+  }
+  return total;
+}
+
 function mapProviderStatus(fcJob: FCJob): CompressionStatus {
   switch (fcJob.status) {
     case 'completed':
@@ -116,6 +148,29 @@ export async function syncJob(job: CompressionJob): Promise<CompressionJob> {
     progress: status === 'completed' ? 100 : progress,
   };
 
+  /* What this job really cost us upstream. Estimates gate the free pool;
+   * these actuals are what the upgrade decision is made on. */
+  const isTerminal = status === 'completed' || status === 'failed';
+  const compressSeconds = isTerminal ? taskSeconds(compressTask) : null;
+  const billed = isTerminal ? billedMinutesForJob(fcJob) : null;
+
+  // Only persist on the terminal transition. Writing a partial value earlier
+  // would make the `!job.providerBilledMinutes` guard below skip the very
+  // sync that is supposed to count this job.
+  if (isTerminal) {
+    if (compressSeconds !== null) {
+      patch.providerCompressSeconds = compressSeconds.toFixed(3);
+    }
+    const jobSeconds = spanSeconds(
+      fcJob.startedAt as string | undefined,
+      fcJob.endedAt as string | undefined
+    );
+    if (jobSeconds !== null) {
+      patch.providerJobSeconds = jobSeconds.toFixed(3);
+    }
+    patch.providerBilledMinutes = billed;
+  }
+
   if (status === 'completed') {
     patch.downloadUrl = exportTask?.result?.url ?? null;
     patch.completedAt = new Date();
@@ -149,6 +204,11 @@ export async function syncJob(job: CompressionJob): Promise<CompressionJob> {
     .set(patch)
     .where(eq(jobsSchema.id, job.id))
     .returning();
+
+  // Count usage once, on the transition into a terminal state.
+  if (isTerminal && billed !== null && job.providerBilledMinutes === null) {
+    void recordProviderMinutes(billed, { free: !job.userId });
+  }
 
   // The provider has the file now; drop our staged copy either way.
   if (status === 'completed' || status === 'failed') {

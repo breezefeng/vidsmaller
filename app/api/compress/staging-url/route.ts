@@ -1,4 +1,9 @@
-import { VIDEO_INPUT_FORMATS, type VideoInputFormat } from '@/config/compress';
+import {
+  effectiveMaxFileSize,
+  isProviderCapped,
+  VIDEO_INPUT_FORMATS,
+  type VideoInputFormat,
+} from '@/config/compress';
 import { apiResponse } from '@/lib/api-response';
 import { formatBytes, resolveRequester } from '@/lib/compress/quota';
 import {
@@ -49,9 +54,12 @@ export async function POST(req: Request) {
   }
 
   const requester = await resolveRequester(req);
-  if (fileSize > requester.limits.maxFileSize) {
+  const maxFileSize = effectiveMaxFileSize(requester.tier);
+  if (fileSize > maxFileSize) {
     return apiResponse.error(
-      `File is larger than the ${formatBytes(requester.limits.maxFileSize)} limit for your plan`,
+      isProviderCapped(requester.tier)
+        ? `Files are currently capped at ${formatBytes(maxFileSize)}. We are raising this soon — email us if you need more.`
+        : `File is larger than the ${formatBytes(maxFileSize)} limit for your plan`,
       413
     );
   }

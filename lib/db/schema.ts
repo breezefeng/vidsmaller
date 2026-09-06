@@ -537,6 +537,27 @@ export const compressionJobs = pgTable(
     creditsCharged: integer('credits_charged').default(0).notNull(),
     creditsRefunded: boolean('credits_refunded').default(false).notNull(),
 
+    /**
+     * What the provider actually billed us, in seconds, read from its own task
+     * timestamps. `compress` is the conversion-minute driver; `job` is the
+     * whole pipeline including upload, kept to prove the difference.
+     */
+    providerCompressSeconds: numeric('provider_compress_seconds', {
+      precision: 12,
+      scale: 3,
+    }),
+    providerJobSeconds: numeric('provider_job_seconds', {
+      precision: 12,
+      scale: 3,
+    }),
+    /**
+     * What the provider actually charged: Σ over tasks of
+     * max(1, ceil(task_seconds / 60)). Raw seconds are never the bill — every
+     * task carries a one-minute floor — so this is the only figure that should
+     * drive plan-upgrade decisions.
+     */
+    providerBilledMinutes: integer('provider_billed_minutes'),
+
     downloadUrl: text('download_url'),
     downloadExpiresAt: timestamp('download_expires_at', { withTimezone: true }),
 

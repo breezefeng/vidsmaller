@@ -12,6 +12,10 @@
  *   3. Duplicate each plan with environment: 'live'.
  *   4. Map the plan ids to compressor tiers via PLAN_TIER_MAP in .env
  *      e.g. PLAN_TIER_MAP=<pro-monthly-id>:pro,<max-monthly-id>:max
+ *
+ * Advertised file sizes must never exceed PROVIDER_MAX_FILE_SIZE in
+ * config/compress.ts — the API clamps to it, so a bigger number here is just
+ * a promise we would refund.
  */
 
 import type { InferInsertModel } from 'drizzle-orm'
@@ -197,7 +201,7 @@ const basePlans: PricingPlanConfig[] = [
     priceSuffix: '/ month',
     features: [
       f('600 credits / month', true),
-      f('Up to 5 GB per file'),
+      f('Up to 1.4 GB per file'),
       f('10 files in the queue'),
       f('H.265 / HEVC — ~30% smaller'),
       f('Priority queue'),
@@ -220,7 +224,7 @@ const basePlans: PricingPlanConfig[] = [
         buttonText: 'Go Pro',
         features: [
           f('600 credits / month', true),
-          f('Up to 5 GB per file'),
+          f('Up to 1.4 GB per file'),
           f('10 files in the queue'),
           f('H.265 / HEVC — ~30% smaller'),
           f('Priority queue'),
@@ -237,7 +241,7 @@ const basePlans: PricingPlanConfig[] = [
         buttonText: '升级 Pro',
         features: [
           f('每月 600 积分', true),
-          f('单文件最大 5 GB'),
+          f('单文件最大 1.4 GB'),
           f('队列最多 10 个文件'),
           f('H.265 / HEVC，再小约 30%'),
           f('优先队列'),
@@ -254,7 +258,7 @@ const basePlans: PricingPlanConfig[] = [
         buttonText: 'Pro にする',
         features: [
           f('毎月 600 クレジット', true),
-          f('1 ファイル 5 GB まで'),
+          f('1 ファイル 1.4 GB まで'),
           f('キューは 10 ファイルまで'),
           f('H.265 / HEVC で約 30% 小さく'),
           f('優先キュー'),
@@ -295,7 +299,11 @@ const basePlans: PricingPlanConfig[] = [
     buttonText: 'Go Max',
     buttonLink: '',
     displayOrder: 3,
-    isActive: true,
+    // OFF until the FreeConvert plan is upgraded to Pro (5 GB). Max's headline
+    // is 10 GB per file and the current provider plan caps at 1.5 GB, so
+    // selling it would guarantee a failed upload and a refund.
+    // Re-enable together with PROVIDER_PLAN in config/compress.ts.
+    isActive: false,
     langJsonb: {
       en: {
         cardTitle: 'Max',
@@ -368,7 +376,7 @@ const basePlans: PricingPlanConfig[] = [
     priceSuffix: '/ year',
     features: [
       f('600 credits every month', true),
-      f('Up to 5 GB per file'),
+      f('Up to 1.4 GB per file'),
       f('10 files in the queue'),
       f('H.265 / HEVC — ~30% smaller'),
       f('Priority queue'),
@@ -391,7 +399,7 @@ const basePlans: PricingPlanConfig[] = [
         buttonText: 'Go Pro yearly',
         features: [
           f('600 credits every month', true),
-          f('Up to 5 GB per file'),
+          f('Up to 1.4 GB per file'),
           f('10 files in the queue'),
           f('H.265 / HEVC — ~30% smaller'),
           f('Priority queue'),
@@ -408,7 +416,7 @@ const basePlans: PricingPlanConfig[] = [
         buttonText: '包年 Pro',
         features: [
           f('每月 600 积分', true),
-          f('单文件最大 5 GB'),
+          f('单文件最大 1.4 GB'),
           f('队列最多 10 个文件'),
           f('H.265 / HEVC，再小约 30%'),
           f('优先队列'),
@@ -425,7 +433,7 @@ const basePlans: PricingPlanConfig[] = [
         buttonText: '年額 Pro',
         features: [
           f('毎月 600 クレジット', true),
-          f('1 ファイル 5 GB まで'),
+          f('1 ファイル 1.4 GB まで'),
           f('キューは 10 ファイルまで'),
           f('H.265 / HEVC で約 30% 小さく'),
           f('優先キュー'),
@@ -466,7 +474,8 @@ const basePlans: PricingPlanConfig[] = [
     buttonText: 'Go Max yearly',
     buttonLink: '',
     displayOrder: 3,
-    isActive: true,
+    // OFF — see MAX MONTHLY above.
+    isActive: false,
     langJsonb: {
       en: {
         cardTitle: 'Max',
@@ -541,7 +550,7 @@ const basePlans: PricingPlanConfig[] = [
     priceSuffix: 'one-time',
     features: [
       f('500 credits, no expiry', true),
-      f('Up to 5 GB per file'),
+      f('Up to 1.4 GB per file'),
       f('H.265 / HEVC'),
       f('Stacks on top of any plan'),
     ],
@@ -559,7 +568,7 @@ const basePlans: PricingPlanConfig[] = [
         buttonText: 'Buy credits',
         features: [
           f('500 credits, no expiry', true),
-          f('Up to 5 GB per file'),
+          f('Up to 1.4 GB per file'),
           f('H.265 / HEVC'),
           f('Stacks on top of any plan'),
         ],
@@ -572,7 +581,7 @@ const basePlans: PricingPlanConfig[] = [
         buttonText: '购买积分',
         features: [
           f('500 积分，永不过期', true),
-          f('单文件最大 5 GB'),
+          f('单文件最大 1.4 GB'),
           f('H.265 / HEVC'),
           f('可与任意套餐叠加'),
         ],
@@ -585,7 +594,7 @@ const basePlans: PricingPlanConfig[] = [
         buttonText: 'クレジットを購入',
         features: [
           f('500 クレジット（無期限）', true),
-          f('1 ファイル 5 GB まで'),
+          f('1 ファイル 1.4 GB まで'),
           f('H.265 / HEVC'),
           f('どのプランにも上乗せ可能'),
         ],

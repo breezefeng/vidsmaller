@@ -1,4 +1,9 @@
-import { TIER_LIMITS } from '@/config/compress';
+import {
+  effectiveMaxFileSize,
+  PROVIDER_MAX_FILE_SIZE,
+  TIER_LIMITS,
+  type PlanTier,
+} from '@/config/compress';
 import { apiResponse } from '@/lib/api-response';
 import { resolveRequester } from '@/lib/compress/quota';
 import { toJobView } from '@/lib/compress/service';
@@ -34,12 +39,23 @@ export async function GET(req: Request) {
     /** whether the browser can fall back to staged uploads */
     stagingAvailable: isStagingEnabled(),
     limits: {
-      maxFileSize: requester.limits.maxFileSize,
+      maxFileSize: effectiveMaxFileSize(requester.tier),
       maxBatchFiles: requester.limits.maxBatchFiles,
       retentionHours: requester.limits.retentionHours,
       allowAdvancedCodecs: requester.limits.allowAdvancedCodecs,
     },
-    tiers: TIER_LIMITS,
+    /**
+     * Tier comparison table for the UI. Sizes are clamped to what the current
+     * provider plan can actually accept, so the pricing page can never promise
+     * an upload that the API would reject.
+     */
+    tiers: Object.fromEntries(
+      (Object.keys(TIER_LIMITS) as PlanTier[]).map((tier) => [
+        tier,
+        { ...TIER_LIMITS[tier], maxFileSize: effectiveMaxFileSize(tier) },
+      ])
+    ),
+    providerMaxFileSize: PROVIDER_MAX_FILE_SIZE,
     jobs: rows.map(toJobView),
   });
 }

@@ -257,36 +257,26 @@ export function useCompressor() {
         patch(item.key, { uploadPercent: percent });
 
       try {
-        const created = await createJobRequest({
-          filename: item.name,
-          fileSize: item.size,
-          durationSeconds: item.durationSeconds,
-          settings,
-        });
+        let jobId: string;
 
-        let jobId = created.job.id;
-        patch(item.key, { jobId, phase: 'uploading' });
+        /**
+         * Staging-first.
+         *
+         * The provider meters its `import` task by wall clock, so a browser
+         * uploading straight to it bills us for the visitor's uplink: the same
+         * 600 MB file costs 1 conversion minute at 10 MB/s and 10 minutes at
+         * 1 MB/s. Uploading to our own bucket instead and letting the provider
+         * pull server-to-server moves that time off their meter entirely.
+         *
+         * It also removes the old double-charge: the previous flow created a
+         * job, tried the direct upload, and on failure created a *second* job,
+         * burning a full set of operations on the abandoned one.
+         *
+         * See docs/freeconvert-benchmark.md §7.
+         */
+        if (context?.stagingAvailable) {
+          patch(item.key, { phase: 'uploading' });
 
-        try {
-          if (!created.upload) {
-            throw new UploadTransportError(t('noUploadTarget'));
-          }
-          await uploadFileDirect(
-            item.file,
-            created.upload,
-            onUploadProgress,
-            controller.signal
-          );
-        } catch (uploadErr) {
-          const recoverable =
-            uploadErr instanceof UploadTransportError &&
-            (context?.stagingAvailable ?? false);
-
-          if (!recoverable) throw uploadErr;
-
-          // The provider upload host was unreachable from this browser.
-          // Stage the file in our own bucket and let the provider pull it.
-          onUploadProgress(0);
           const staging = await requestStagingUrl({
             filename: item.name,
             fileSize: item.size,
@@ -301,15 +291,35 @@ export function useCompressor() {
             controller.signal
           );
 
-          const restaged = await createJobRequest({
+          const staged = await createJobRequest({
             filename: item.name,
             fileSize: item.size,
             durationSeconds: item.durationSeconds,
             settings,
             stagingKey: staging.key,
           });
-          jobId = restaged.job.id;
+          jobId = staged.job.id;
           patch(item.key, { jobId });
+        } else {
+          const created = await createJobRequest({
+            filename: item.name,
+            fileSize: item.size,
+            durationSeconds: item.durationSeconds,
+            settings,
+          });
+
+          jobId = created.job.id;
+          patch(item.key, { jobId, phase: 'uploading' });
+
+          if (!created.upload) {
+            throw new UploadTransportError(t('noUploadTarget'));
+          }
+          await uploadFileDirect(
+            item.file,
+            created.upload,
+            onUploadProgress,
+            controller.signal
+          );
         }
 
         patch(item.key, { phase: 'processing', uploadPercent: 100 });

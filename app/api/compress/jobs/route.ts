@@ -1,9 +1,13 @@
 import {
+  effectiveMaxFileSize,
   estimateCredits,
+  estimateProviderMinutes,
+  isProviderCapped,
   VIDEO_INPUT_FORMATS,
   type VideoInputFormat,
 } from '@/config/compress';
 import { apiResponse } from '@/lib/api-response';
+import { releaseFreeBudget, reserveFreeBudget } from '@/lib/compress/budget';
 import {
   chargeCredits,
   InsufficientCreditsError,
@@ -81,9 +85,12 @@ export async function POST(req: Request) {
     );
   }
 
-  if (fileSize > limits.maxFileSize) {
+  const maxFileSize = effectiveMaxFileSize(tier);
+  if (fileSize > maxFileSize) {
     return apiResponse.error(
-      `File is larger than the ${formatBytes(limits.maxFileSize)} limit for your plan`,
+      isProviderCapped(tier)
+        ? `Files are currently capped at ${formatBytes(maxFileSize)}. We are raising this soon — email us if you need more.`
+        : `File is larger than the ${formatBytes(maxFileSize)} limit for your plan`,
       413
     );
   }
@@ -111,6 +118,42 @@ export async function POST(req: Request) {
     }
   }
 
+  /* ---------------- provider pool budget ---------------- */
+
+  /**
+   * Conversion minutes are one pool shared by the whole account. Free and
+   * anonymous work draws from a ring-fenced slice of it so a traffic spike
+   * can never break a paying customer mid-month.
+   */
+  const isFreeTraffic = tier === 'anonymous' || tier === 'free';
+  const providerMinutes = estimateProviderMinutes({
+    durationSeconds: durationSeconds ?? null,
+    fileSizeBytes: fileSize,
+    codec: settings.codec,
+    // Direct uploads are metered at the visitor's uplink and cost far more.
+    staged: Boolean(stagingKey),
+  });
+
+  let budgetReserved = 0;
+  if (isFreeTraffic) {
+    const budget = await reserveFreeBudget(providerMinutes);
+    if (!budget.allowed) {
+      return apiResponse.error(
+        'Free compressions are maxed out for today. Try again tomorrow, or upgrade for guaranteed capacity.',
+        429
+      );
+    }
+    budgetReserved = providerMinutes;
+  }
+
+  /** Hand the reservation back on any path that never reaches the provider. */
+  const refundBudget = async () => {
+    if (budgetReserved > 0) {
+      await releaseFreeBudget(budgetReserved);
+      budgetReserved = 0;
+    }
+  };
+
   /* ---------------- credits ---------------- */
 
   const credits = requester.userId
@@ -122,6 +165,7 @@ export async function POST(req: Request) {
     : 0;
 
   if (requester.userId && credits > requester.credits) {
+    await refundBudget();
     return apiResponse.error(
       `Not enough credits: this video needs ${credits}, you have ${requester.credits}.`,
       402
@@ -135,9 +179,11 @@ export async function POST(req: Request) {
   let importUrl: string | undefined;
   if (stagingKey) {
     if (!isStagingEnabled()) {
+      await refundBudget();
       return apiResponse.error('Staging storage is not configured', 501);
     }
     if (!stagingKey.startsWith('compress-input/')) {
+      await refundBudget();
       return apiResponse.badRequest('Invalid staging key');
     }
     importUrl = await createStagingDownloadUrl({ key: stagingKey });
@@ -156,6 +202,25 @@ export async function POST(req: Request) {
     );
   } catch (err) {
     console.error('[compress] createJob failed', err);
+    await refundBudget();
+
+    // 402 means *our* upstream plan is out of capacity, not that the user did
+    // anything wrong. Telling them to "try a different preset" would send them
+    // round a loop that can never succeed.
+    const isQuota =
+      err instanceof FreeConvertError &&
+      (err.status === 402 ||
+        String(err.code ?? '').includes('limit_exceeds') ||
+        /limit exceeded/i.test(err.message));
+
+    if (isQuota) {
+      console.error('[compress] PROVIDER CAPACITY EXHAUSTED — upgrade the plan');
+      return apiResponse.error(
+        'We are at capacity right now. Please try again shortly — we have been notified.',
+        503
+      );
+    }
+
     // Never leak provider/config internals to the browser.
     const isClientFixable =
       err instanceof FreeConvertError && err.status >= 400 && err.status < 500;
@@ -174,6 +239,7 @@ export async function POST(req: Request) {
       uploadForm = getUploadForm(providerJob, TASK_IMPORT);
     } catch (err) {
       console.error('[compress] missing upload form', err);
+      await refundBudget();
       return apiResponse.error(
         'Compression service returned no upload target',
         502
@@ -191,6 +257,10 @@ export async function POST(req: Request) {
         `Video compression: ${filename}`
       );
     } catch (err) {
+      // The browser never uploads after an error here, so the provider job
+      // dies unprocessed and burns no conversion minutes — hand the
+      // reservation back.
+      await refundBudget();
       if (err instanceof InsufficientCreditsError) {
         return apiResponse.error('Not enough credits', 402);
       }
@@ -215,7 +285,11 @@ export async function POST(req: Request) {
         durationSeconds && durationSeconds > 0
           ? String(Math.round(durationSeconds * 1000) / 1000)
           : null,
-      settings: { ...settings, stagingKey: stagingKey ?? null },
+      settings: {
+        ...settings,
+        stagingKey: stagingKey ?? null,
+        estimatedProviderMinutes: Math.round(providerMinutes * 1000) / 1000,
+      },
       creditsCharged: credits,
     })
     .returning();

@@ -12,11 +12,16 @@ import { randomUUID } from 'crypto';
 /**
  * Optional staging bucket.
  *
- * The default flow uploads the browser's file *straight* to the compression
- * provider, so VidSmaller needs no object storage at all. This module is the
- * fallback for the one case where that cannot work — a browser/CORS or
- * corporate-proxy failure — and for "recompress with different settings"
- * without asking the user to upload again.
+ * This is now the *default* upload path, not a fallback.
+ *
+ * The provider meters its `import` task by wall clock, so uploading the
+ * browser's file straight to it bills us for the visitor's uplink — the same
+ * 600 MB file costs 1 conversion minute at 10 MB/s and 10 at 1 MB/s. Staging
+ * in our own bucket and letting the provider pull server-to-server moves that
+ * time off their meter entirely, and cuts a typical job from 6 billed minutes
+ * to 4. See docs/freeconvert-benchmark.md §7.
+ *
+ * It also enables "recompress with different settings" without a re-upload.
  */
 
 export const STAGING_PREFIX = 'compress-input';
@@ -63,13 +68,34 @@ export async function createStagingUploadUrl(input: {
 }
 
 /**
- * Presigned GET handed to the provider's `import/url` task.
- * Short-lived and unguessable, so the bucket can stay private.
+ * URL handed to the provider's `import/url` task.
+ *
+ * Prefers the R2 custom domain over a presigned URL. Presigned URLs do not
+ * survive third-party HTTP clients: the AWS SDK signs non-standard query
+ * params (`x-id`, `x-amz-checksum-mode`) and dropping *any* of them yields
+ * `SignatureDoesNotMatch`. FreeConvert normalises the URL and strips them, so
+ * every staged import failed with 403 (verified 2026-09-06).
+ *
+ * The custom domain has nothing to break, is served from Cloudflare's edge
+ * (so the provider's metered `import` task finishes faster), and costs no
+ * egress.
+ *
+ * Confidentiality rests on the key being unguessable — `buildStagingKey` uses
+ * a v4 UUID (122 bits) — plus deletion as soon as the job reaches a terminal
+ * state. Add an R2 lifecycle rule expiring `compress-input/` after one day as
+ * a backstop for jobs that never finish.
  */
 export async function createStagingDownloadUrl(input: {
   key: string;
   expiresIn?: number;
 }): Promise<string> {
+  const publicBase = process.env.R2_PUBLIC_URL?.replace(/\/+$/, '');
+  if (publicBase) {
+    return `${publicBase}/${input.key}`;
+  }
+
+  // No custom domain configured: fall back to a presigned URL and hope the
+  // consumer leaves the query string alone.
   const client = createR2Client();
   return getSignedUrl(
     client,
