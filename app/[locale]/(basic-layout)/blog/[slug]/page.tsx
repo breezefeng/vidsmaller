@@ -69,9 +69,11 @@ export async function generateMetadata({
   return constructMetadata({
     title: postMetadata.title,
     description: postMetadata.description || undefined,
-    images: postMetadata.featuredImageUrl
-      ? [postMetadata.featuredImageUrl]
-      : undefined,
+    // Deliberately NOT the cover image. Our covers are wordless illustrations
+    // by design, and a social card with no title is a worse click than the
+    // dynamic one in opengraph-image.tsx, which renders the headline. The
+    // cover still appears on the card and at the top of the post.
+    images: undefined,
     locale: locale as Locale,
     path: fullPath,
     noIndex: postMetadata.visibility !== "public",
