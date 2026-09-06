@@ -1,0 +1,179 @@
+---
+title: "Gmail Says 25 MB. It Means About 18. Here's Why Your Video Bounced."
+description: "Email attachments are base64-encoded in transit, which inflates them by about 37%. Gmail measures the encoded message, not your file — so a 25 MB video arrives as 34 MB and is refused."
+slug: /email-attachment-size-limit-video
+tags: email,gmail,outlook,attachment-limit,video-compression
+featuredImageUrl: https://cdn.vidsmaller.com/seo/blog/email-attachment-limit-cover-e372d51ab34d1340.webp
+publishedAt: 2026-09-06
+status: published
+isPinned: false
+---
+
+You compressed the video to exactly 25 MB because that is Gmail's documented
+limit. You attached it. It bounced.
+
+This happens constantly, and it happens because almost every guide on the
+internet repeats Gmail's number without mentioning the thing that makes it
+wrong in practice.
+
+## Quick takeaways
+
+- **Email cannot carry binary.** Attachments are base64-encoded into text,
+  which inflates them by about **37%**.
+- **Gmail measures the encoded message, not your file.** A 25 MB video becomes
+  a ~34 MB message and is refused.
+- **The real ceiling for a raw file is about 18 MB.**
+- Outlook.com is 20 MB, and Microsoft ships a **10 MB default for Exchange**
+  work accounts that many administrators never change.
+- Above the limit, Gmail silently converts the attachment to a Drive link —
+  which is often worse for the recipient than you think.
+
+## Why 25 MB is not 25 MB
+
+Email was designed in an era when it carried text, and the protocol still
+does. A video is binary, so it cannot travel as-is. It gets encoded into
+printable characters using base64, which represents every 3 bytes as 4
+characters.
+
+That is the whole problem. 4 divided by 3 is 1.333, plus line breaks and MIME
+headers, so an attachment arrives on the wire roughly **37% larger** than it is
+on your disk.
+
+```
+Your file          25.0 MB
+On the wire        ~34.3 MB      ← what Gmail measures
+Gmail's limit      25.0 MB
+Result             bounced
+```
+
+Work backwards from the limit instead:
+
+```
+Gmail's limit      25.0 MB
+÷ 1.37             18.2 MB       ← the largest raw file that survives
+```
+
+**Target 18 MB.** The encoded message lands around 24.7 MB, just inside, with
+enough room that a slightly different MIME implementation will not push it
+over.
+
+## The actual limits, per provider
+
+| Provider | Documented limit | Realistic raw file |
+| --- | --- | --- |
+| Gmail (personal) | 25 MB | ~18 MB |
+| Outlook.com | 20 MB | ~14 MB |
+| Exchange / work mail | **10 MB default** | ~7 MB |
+| Google Workspace | usually 25 MB, admin-set | ~18 MB |
+
+The work-email row is the one that catches people. Microsoft's default for
+Exchange accounts is 10 MB, and while administrators can raise it, plenty
+never do. If you are sending to a corporate address and it matters, assume the
+low number.
+
+There is also a receiving side. Gmail accepts messages up to 50 MB inbound
+even though it only lets you send 25 — so a colleague on a permissive server
+can send you something you could never send back.
+
+## What 18 MB actually holds
+
+At an 18 MB target, this is exactly how much bitrate is left at each length:
+
+| Video length | Bitrate left for video | Comfortable at |
+| --- | --- | --- |
+| 30 seconds | 4,805 kbps | 1080p |
+| 1 minute | 2,338 kbps | 720p |
+| 2 minutes | 1,105 kbps | 480p |
+| 5 minutes | 365 kbps | 360p, and visibly rough |
+
+The bitrate figures are arithmetic — 18 MB spread over the duration, minus
+128 kbps of stereo audio and about 2% container overhead. The resolution
+column is a judgement based on published H.264 bitrate ladders.
+
+The honest summary: **email is for clips under about two minutes.** Past that
+you are choosing between a video nobody enjoys watching and a link.
+
+If what you are sending is a screen recording — a bug report, a walkthrough, a
+demo — you have much more room. Screen content compresses several times better
+than camera footage; we measured a 1080p screen capture holding VMAF 89.9 at
+0.79 MB per ten seconds. Details in
+[CRF explained](/blog/crf-explained-what-number-to-use).
+
+## Should you just use a link?
+
+Gmail will do this for you automatically above 25 MB: it uploads to Drive and
+inserts a link. That is genuinely the right answer for anything long. But it
+is not free, and the costs land on the recipient rather than you:
+
+- **It needs a second click**, and then a third if they are not signed in.
+- **Corporate mail filters strip or flag external links** far more often than
+  attachments.
+- **It expires**, or the permissions get changed, and the email becomes useless
+  six months later when someone searches for it.
+- **It leaks who opened it and when**, back to you. Some people mind.
+
+For a clip that genuinely fits in 18 MB, an attachment is the better
+experience. Above that, link it and stop fighting.
+
+## How to get under 18 MB
+
+1. **Trim it.** The first ten seconds of a screen recording are almost always
+   you finding the window. Free bits.
+2. **Set a target size of 18 MB** rather than guessing at a quality slider.
+   Target-size mode encodes two-pass and lands within a couple of percent.
+3. **Drop to 720p if it is over a minute.** At 18 MB, a clean 720p file looks
+   considerably better than a 1080p one starved of bitrate.
+4. **Keep H.264 in an MP4.** Your recipient's device is not your choice to
+   make, and H.265 will not open on plenty of them.
+
+Our [email compressor](/compress-video-for-email) is preset to 18 MB for
+exactly this reason.
+
+## FAQ
+
+### What size video can I email?
+
+About 18 MB of actual file if you want it to work everywhere. Gmail advertises
+25 MB and Outlook.com 20 MB, but both measure the base64-encoded attachment,
+which is roughly 1.37x the size of the file on your disk.
+
+### Why did my email bounce when the attachment was under the limit?
+
+Base64 encoding. The protocol cannot carry raw binary, so the attachment is
+re-encoded as text and grows about 37%. Your 24 MB video is a 33 MB message,
+and Gmail checks the message.
+
+### What is the Outlook attachment limit?
+
+20 MB for Outlook.com, which works out to about 14 MB of raw file. Exchange
+and Microsoft 365 accounts default to 10 MB and are configurable by an
+administrator, so a work address may be far more restrictive than a personal
+one.
+
+### How do I send a large video by email?
+
+Compress to 18 MB if it will fit without looking bad, which for most clips
+under two minutes it will. Otherwise use a link — and expect that some
+corporate recipients will not be able to open it.
+
+### Does compressing a video for email reduce quality?
+
+Yes, in the strict sense, but usually not visibly. Most phone recordings and
+screen captures carry far more bitrate than their content needs. Whether you
+can see the loss depends on the source, not the target size. See
+[how to compress without losing quality](/blog/how-to-compress-a-video-without-losing-quality).
+
+### Can I zip the video to make it smaller?
+
+Almost never. Video files are already compressed, and ZIP has nothing left to
+find — expect a saving of one or two percent. It also makes the attachment
+harder for the recipient and more likely to be stripped by a mail filter. Zip
+is for many small files, not for one large one that is already dense.
+
+---
+
+[Compress a video for email](/compress-video-for-email) — preset to 18 MB, no
+account, no watermark. Other limits:
+[Discord](/compress-video-for-discord) ·
+[WhatsApp](/compress-video-for-whatsapp) ·
+[Slack](/compress-video-for-slack)

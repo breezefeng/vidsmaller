@@ -29,6 +29,36 @@
       "model": "gpt-image-2",
       "quality": "medium",
       "generatedAt": "2026-09-06T12:35:56.233Z"
+    },
+    "post-discord-limit": {
+      "hash": "a50ad907409aa1d4",
+      "url": "https://cdn.vidsmaller.com/seo/blog/discord-file-size-limit-cover-a50ad907409aa1d4.webp",
+      "alt": "Illustration of video files queueing at a narrow upload aperture, with only the small ones passing through",
+      "width": 1536,
+      "height": 864,
+      "bytes": 827994,
+      "group": "blog",
+      "usedBy": [
+        "blog/discord-file-size-limit"
+      ],
+      "model": "gpt-image-2",
+      "quality": "medium",
+      "generatedAt": "2026-09-06T12:47:44.053Z"
+    },
+    "post-email-limit": {
+      "hash": "e372d51ab34d1340",
+      "url": "https://cdn.vidsmaller.com/seo/blog/email-attachment-limit-cover-e372d51ab34d1340.webp",
+      "alt": "Illustration of an email attachment swelling past the envelope it has to fit inside",
+      "width": 1536,
+      "height": 864,
+      "bytes": 710918,
+      "group": "blog",
+      "usedBy": [
+        "blog/email-attachment-size-limit-video"
+      ],
+      "model": "gpt-image-2",
+      "quality": "medium",
+      "generatedAt": "2026-09-06T12:48:11.072Z"
     }
   }
 }

@@ -1,3 +1,4 @@
+import { PLATFORM_BY_SLUG } from '@/config/platforms';
 import { cn } from '@/lib/utils';
 import { Check, Cloud, FileVideo, Gauge, Loader2 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
@@ -37,11 +38,13 @@ function TargetSizeVisual() {
   const t = useTranslations('Landing.Features.visuals.targetSize');
 
   // Brand names and sizes are the same in every locale, so they stay in code.
-  const presets = [
-    { label: 'Email', size: '25 MB' },
-    { label: 'WhatsApp', size: '16 MB' },
-    { label: 'Discord', size: '10 MB' },
-  ];
+  // The numbers come from config/platforms.ts rather than literals: these were
+  // hardcoded and went stale (Discord said 10 MB months after it became 20 MB,
+  // and "Email 25 MB" is the number that makes attachments bounce).
+  const presets = (['email', 'whatsapp', 'discord'] as const).map((slug) => ({
+    label: slug === 'email' ? 'Email' : PLATFORM_BY_SLUG[slug].name,
+    size: `${PLATFORM_BY_SLUG[slug].recommendedTargetMb} MB`,
+  }));
 
   return (
     <Frame>
