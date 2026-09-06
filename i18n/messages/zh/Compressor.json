@@ -105,6 +105,15 @@
     "cancel": "取消",
     "willBe": "预计结果：<hl>{size}</hl>",
     "willProduce": "约 <hl>{size}</hl> · −{percent}%",
+    "headroom": {
+      "title": "这个文件已经没什么余量了",
+      "body": "片源本身就压得很省：{tier} 只有 {source} kbps。当前设置会压到 {output} kbps，低于 {outputTier} 通常需要的 {floor} kbps。",
+      "bodyImpossible": "片源本身就压得很省：{tier} 只有 {source} kbps。而这个目标体积连音轨都装不下，画面分不到码率。",
+      "usePreset": "改用{preset} · {kbps} kbps",
+      "usePresetSoft": "改用{preset}少压一点 · {kbps} kbps",
+      "useResolution": "改成 {label} · {kbps} kbps",
+      "screenNote": "屏幕录制是例外——它在低得多的码率下依然能看。"
+    },
     "costCredits": "{count, plural, =0 {免费} other {# 积分}}",
     "costFree": "免费 · 无需注册",
     "saved": "已省下 <hl>{amount}</hl>",

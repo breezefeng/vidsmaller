@@ -1,0 +1,18 @@
+{
+  "ts": "2026-09-06T14:30:00Z",
+  "question": "Does the same percentage preset do the same damage to every file?",
+  "method": {
+    "master": "/tmp/crfsrc/camera.mp4 — 1920x1080, 29.97 fps, 10.01 s, 25.1 Mbps. The same master scripts/crf-sweep.mjs uses (sourceHash b23aa16c11d5). High-motion, noisy handheld footage, i.e. the demanding end of the range.",
+    "encoder": "local ffmpeg, libx264, preset faster, ABR with maxrate 2x / bufsize 4x, AAC 128 kbps",
+    "metric": "libvmaf, mean over all frames",
+    "note": "Two references are reported. 'vsMaster' shows absolute quality. 'vsOwnSource' is the one the product cares about: how much worse the output is than the file the user already had."
+  },
+  "rows": [
+    { "case": "source with slack", "role": "input", "videoKbps": 5896, "vmafVsMaster": 91.53 },
+    { "case": "source already lean", "role": "input", "videoKbps": 1462, "vmafVsMaster": 57.74 },
+    { "case": "source with slack -> Balanced 50%", "role": "output", "videoKbps": 2952, "vmafVsMaster": 75.0, "vmafVsOwnSource": 80.42 },
+    { "case": "source already lean -> Balanced 50%", "role": "output", "videoKbps": 745, "vmafVsMaster": 27.26, "vmafVsOwnSource": 38.08 },
+    { "case": "source already lean -> Light 70%", "role": "output", "videoKbps": 1028, "vmafVsMaster": 36.05, "vmafVsOwnSource": 51.92 }
+  ],
+  "conclusion": "Identical preset, identical content: judged against the file the user brought us, Balanced scores 80.4 on a source with slack and 38.1 on one that is already lean. The preset is a statement about file size and says nothing about how much room the video had, which is why the UI now checks before running."
+}
