@@ -114,7 +114,8 @@
       "useResolution": "Drop to {label} instead · {kbps} kbps",
       "screenNote": "Screen recordings are the exception — they stay watchable far lower."
     },
-    "costCredits": "{count, plural, =0 {Free} one {# credit} other {# credits}}",
+    "costCredits": "{count, plural, =0 {Free} one {≈ # credit} other {≈ # credits}}",
+    "costNote": "Held up front · unused credits are returned when the job finishes",
     "costFree": "Free · no sign-up",
     "saved": "Saved <hl>{amount}</hl>",
     "remove": "Remove",

@@ -38,17 +38,24 @@
  * HOW ACCURATE CAN THIS BE — read this before "fixing" the constants.
  *
  * The same file at the same settings, four separate runs, was measured at
- * 16.5s, 19.4s, 27.3s and ~45s of compress time. The provider spreads jobs
+ * 16.5s, 19.4s, 27.3s and 44.3s of compress time. The provider spreads jobs
  * across machines of visibly different speeds, so a 2.7x spread on identical
  * input is normal and no constant can predict a single run. The prediction
  * therefore aims at the middle of that spread, and the curve in progress.ts is
  * built to survive being wrong in both directions: an early finish snaps to
  * 100%, a late one slows down and keeps creeping.
+ *
+ * On long files that spread swallows the preset entirely: the 80-minute job
+ * ran 504s and 280s at `medium`, then 351s and 306s at `faster`. Which is a
+ * warning about the ETA, not about the preset — the preset comparison that
+ * justifies the default was run back-to-back on one file
+ * (scripts/fc-speed-preset-results.jsonl).
  */
 
 import {
   PROVIDER_CODEC_FACTOR,
   PROVIDER_JOB_OVERHEAD_SECONDS,
+  PROVIDER_REAL_CONTENT_FACTOR,
   PROVIDER_SECONDS_PER_SOURCE_SECOND,
   PROVIDER_SPEED_FACTOR,
   providerHeightFactor,
@@ -108,8 +115,11 @@ export function estimateCompressSeconds({
     (PROVIDER_SPEED_FACTOR[settings?.speed ?? 'medium'] ?? 1);
 
   const seconds =
-    PROVIDER_JOB_OVERHEAD_SECONDS +
-    duration * PROVIDER_SECONDS_PER_SOURCE_SECOND * factor;
+    (PROVIDER_JOB_OVERHEAD_SECONDS +
+      duration * PROVIDER_SECONDS_PER_SOURCE_SECOND * factor) *
+    // The fit was measured on generated footage. Real files cost more; see
+    // config/compress.ts and scripts/fc-real-job-costs.jsonl.
+    PROVIDER_REAL_CONTENT_FACTOR;
 
   return Math.max(seconds, 3);
 }

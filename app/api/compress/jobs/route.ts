@@ -7,6 +7,7 @@ import {
   type VideoInputFormat,
 } from '@/config/compress';
 import { apiResponse } from '@/lib/api-response';
+import { estimateOutputBytes } from '@/lib/compress/estimate';
 import {
   budgetResetsAt,
   releaseFreeBudget,
@@ -155,12 +156,27 @@ export async function POST(req: Request) {
    * by "free", which they did not before.
    */
   const isFreeTraffic = !requester.userId;
+
+  /**
+   * The export task writes the result into our bucket, so its cost follows the
+   * output size, not the input's. Predicting it here is the difference between
+   * charging one minute and two on a 700 MB file.
+   */
+  const predictedOutputBytes = estimateOutputBytes(settings, {
+    sizeBytes: fileSize,
+    durationSeconds: durationSeconds ?? null,
+    width: sourceWidth ?? null,
+    height: sourceHeight ?? null,
+  });
+
   const providerMinutes = estimateProviderMinutes({
     durationSeconds: durationSeconds ?? null,
     fileSizeBytes: fileSize,
     codec: settings.codec,
     speed: settings.speed,
     heightPx: sourceHeight ?? null,
+    outputBytes: predictedOutputBytes,
+    conservative: true,
     // Direct uploads are metered at the visitor's uplink and cost far more.
     staged: Boolean(stagingKey),
   });
@@ -207,6 +223,7 @@ export async function POST(req: Request) {
         codec: settings.codec,
         speed: settings.speed,
         heightPx: sourceHeight ?? null,
+        outputBytes: predictedOutputBytes,
       })
     : 0;
 
