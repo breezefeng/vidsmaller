@@ -88,8 +88,19 @@ export const TIER_LIMITS: Record<PlanTier, TierLimits> = {
   },
 };
 
-/** Free daily compressions for signed-out visitors (per IP). */
-export const ANONYMOUS_DAILY_LIMIT = 2;
+/**
+ * Free daily compressions for signed-out visitors (per IP).
+ *
+ * Raised from 2 on 2026-09-06. Two is below the point where a first-time
+ * visitor can try the thing twice and still have a go at their real file, and
+ * the competitor we benchmark against (videocompress.ai) lets an anonymous
+ * visitor run at least six in a row with no gate at all.
+ *
+ * This can be loosened safely because it is not the real protection:
+ * FREE_DAILY_MINUTE_BUDGET caps the whole site's anonymous spend regardless
+ * of how many IPs show up. This number only shapes single-visitor behaviour.
+ */
+export const ANONYMOUS_DAILY_LIMIT = 4;
 
 /* ------------------------------------------------------------------ */
 /* Upstream provider ceiling                                           */
@@ -256,52 +267,55 @@ export const PROVIDER_UPGRADE_THRESHOLD =
 /* ------------------------------------------------------------------ */
 
 /**
- * 1 credit == 1 minute of source video with the default (H.264) codec.
- * Heavier codecs burn more machine time, so they cost more.
- */
-export const CREDIT_COST_PER_MINUTE: Record<string, number> = {
-  libx264: 1,
-  h264_nvenc: 1,
-  libx265: 2,
-  hevc_nvenc: 2,
-  av1_nvenc: 3,
-};
-
-/**
  * FreeConvert bills per *task*, rounded up, with a one-minute floor each:
  *
  *   job_minutes = Σ max(1, ceil(task_seconds / 60))
  *
  * Our pipeline is import + compress + export, so **no job can ever cost less
  * than 3 conversion minutes** — a 5-second clip costs exactly as much as a
- * 3-minute one. Charging 1 credit for those was a guaranteed loss: 600
- * one-minute clips on the $9 Pro plan burned ~1800 minutes ($13.50) for $9 of
- * revenue.
- *
- * Setting the floor to 3 mirrors the provider's own floor. Worst case (a user
- * spending every credit on tiny clips) now lands at ~42% margin instead of
- * -50%; a normal mix sits above 70%.
- *
- * See docs/freeconvert-benchmark.md §5.
+ * 3-minute one.
  */
 export const MIN_CREDITS_PER_JOB = 3;
 
-/** Fallback when the browser could not read the duration (charge by size). */
-export const FALLBACK_MINUTES_PER_100MB = 2;
-
+/**
+ * 1 credit == 1 conversion minute the provider actually bills us for.
+ *
+ * This used to be "1 credit == 1 minute of *source video*", which had the
+ * price growing linearly with duration while the cost did not. The encode
+ * leg is `6.1 + 0.1191 × source_seconds`, so it does not cross into a second
+ * billed minute until ~7.5 minutes of 1080p source: **every job under that
+ * costs us exactly the same 3 minutes**. Charging by duration meant a
+ * 15-minute meeting recording cost 15 credits to produce something we were
+ * billed 4 minutes for — 5x the true cost, and 5x what videocompress.ai
+ * charges for the same file.
+ *
+ * Pricing off the provider's own meter fixes that in both directions and
+ * makes the codec surcharge fall out for free: libx265 is 3.77x slower, so
+ * it books more minutes without a separate multiplier table.
+ *
+ * The ceiling is unchanged. N credits still buys at most N conversion
+ * minutes, so the worst case a balance can inflict on the upstream bill is
+ * exactly what it was before; only the mid-range gets cheaper.
+ *
+ * Always priced as if staged, because whether the file goes through R2 is
+ * our infrastructure decision and must not show up in the user's price.
+ *
+ * See docs/freeconvert-benchmark.md §5.
+ */
 export function estimateCredits(input: {
   durationSeconds?: number | null;
   fileSizeBytes: number;
   codec: string;
 }): number {
-  const perMinute = CREDIT_COST_PER_MINUTE[input.codec] ?? 1;
-
-  const minutes =
-    input.durationSeconds && input.durationSeconds > 0
-      ? input.durationSeconds / 60
-      : (input.fileSizeBytes / (100 * MB)) * FALLBACK_MINUTES_PER_100MB;
-
-  return Math.max(MIN_CREDITS_PER_JOB, Math.ceil(minutes * perMinute));
+  return Math.max(
+    MIN_CREDITS_PER_JOB,
+    estimateProviderMinutes({
+      durationSeconds: input.durationSeconds ?? null,
+      fileSizeBytes: input.fileSizeBytes,
+      codec: input.codec,
+      staged: true,
+    })
+  );
 }
 
 /* ------------------------------------------------------------------ */

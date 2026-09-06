@@ -60,7 +60,7 @@ third cheaper, at identical quality.
 
 | | Max per file | Files per batch | Credits / month | Result kept for |
 | --- | --- | --- | --- | --- |
-| Not signed in | 200 MB | 1 | — (2 jobs/day) | 2 hours |
+| Not signed in | 200 MB | 1 | — (4 jobs/day) | 2 hours |
 | Free account | 1 GB | 3 | 30 | up to 7 days |
 | Pro — $9/mo | 1.4 GB | 10 | 600 | up to 7 days |
 
@@ -71,11 +71,19 @@ we currently pay for won't accept files that large. Rather than sell you a job w
 would be rejected, the app shows the smaller number. It goes up automatically the day we
 upgrade the encoding plan.
 
-**Credits are minutes, with a floor of 3.** One credit compresses one minute of source
-video in H.264; H.265 costs two credits a minute because it takes roughly four times the
-machine time. Every job costs at least 3 credits, because our provider bills a full
+**A credit is one billed encoder minute, with a floor of 3.** We charge exactly what the
+encoder charges us. Every job costs at least 3 credits, because our provider bills a full
 minute for each of the three stages (import, compress, export) no matter how short the
-clip is. If a job fails, its credits go straight back to your balance, automatically.
+clip is. That floor covers any 1080p clip up to about seven minutes — the encode itself
+only crosses into a second billed minute past that point. A 15-minute meeting recording
+is 4 credits; a 40-minute 4K file is 7. H.265 costs more because it is roughly 3.8x
+slower. If a job fails, its credits go straight back to your balance, automatically.
+
+This used to read "one credit per minute of source video", priced linearly by duration.
+Cost is not linear in duration: anything under about seven minutes of 1080p costs the
+same three machine-minutes. That formula charged 15 credits for a 15-minute meeting
+recording to buy something we were billed four minutes for. It now tracks the provider's
+own meter.
 
 ## What we run on
 

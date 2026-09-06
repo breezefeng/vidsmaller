@@ -177,6 +177,12 @@ export async function POST(req: Request) {
 
   /* ---------------- credits ---------------- */
 
+  /**
+   * Deliberately not `providerMinutes` from above: that one carries the real
+   * `staged` flag because it guards our upstream bill, while the price the
+   * user pays must not swing on whether staging happened to be configured.
+   * `estimateCredits` always prices the staged path.
+   */
   const credits = requester.userId
     ? estimateCredits({
         durationSeconds: durationSeconds ?? null,

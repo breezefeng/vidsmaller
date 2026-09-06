@@ -438,19 +438,40 @@ job the provider is guaranteed to reject. Upgrading is one word: flip
 **The `max` tier is switched off** in `lib/db/seed/pricing-config.ts` until then:
 its headline is 10 GB per file, which the current plan cannot deliver.
 
-- Signed-out visitors get `ANONYMOUS_DAILY_LIMIT` (2) free jobs per day per IP,
+- Signed-out visitors get `ANONYMOUS_DAILY_LIMIT` (4) free jobs per day per IP,
   enforced through Upstash Redis. Without Redis the limiter fails open.
 - A second, account-wide gate (`lib/compress/budget.ts`) ring-fences
   `FREE_TRAFFIC_BUDGET_SHARE` (60%) of the daily conversion-minute pool for
-  anonymous + free traffic, so a spike cannot starve paying customers mid-month.
+  **anonymous** traffic, so a spike cannot starve paying customers mid-month.
   Tune without a deploy via `FC_FREE_DAILY_MINUTES`.
-- **1 credit = 1 minute of source video** on H.264, 2 on H.265, 3 on AV1,
-  **minimum 3**. Duration is read in the browser via `<video>` metadata; if that
-  fails we fall back to charging by file size.
+
+  > Signed-in users are deliberately outside this gate, whatever their tier.
+  > Until 2026-09-06 it also caught `tier === 'free'`, which meant a user could
+  > hold 30 credits, see them in the UI, and still be told "try again tomorrow"
+  > by a pool they could not see. Granted credits have to be spendable; the
+  > balance is already the bound.
+
+  Reservations are estimates, so they are **settled** against the provider's
+  real per-task numbers when the job lands (`settleFreeBudget`). Without that
+  the counter is a ratchet: measured 2026-09-06, 30 minutes reserved against a
+  real spend of roughly half that.
+- **1 credit = 1 conversion minute the provider bills us for**, **minimum 3**.
+  Duration is read in the browser via `<video>` metadata; if that fails we
+  infer it from file size.
   The floor is 3 because the provider's own floor is 3 (one minute per task ×
-  import + compress + export). Charging 1 credit for a short clip was a
-  guaranteed loss: 600 one-minute clips on the $9 Pro plan burned ~1800
-  conversion minutes ($13.50) for $9 of revenue.
+  import + compress + export).
+
+  > This used to be "1 credit = 1 minute of *source video*", priced linearly by
+  > duration while the cost is not: the encode leg is
+  > `6.1 + 0.1191 × source_seconds`, so it does not reach a second billed minute
+  > until ~7.5 minutes of 1080p. Every job under that costs the same 3 minutes.
+  > The old formula charged 15 credits for a 15-minute meeting recording to buy
+  > something we were billed 4 minutes for — 5x the true cost, and 5x what
+  > videocompress.ai charges for the same file.
+  >
+  > Pricing off the provider's meter also removes the separate codec table:
+  > libx265 is 3.77x slower, so it books more minutes on its own. The ceiling is
+  > unchanged — N credits still buys at most N conversion minutes.
 - Credits are charged when the job is created and **automatically refunded**
   (exactly once) if the provider reports failure.
 

@@ -32,7 +32,7 @@ const PLAN_LIMITS: {
     plan: "Signed out",
     file: "200 MB",
     batch: "1 file",
-    credits: "2 free jobs per day, per IP",
+    credits: "4 free jobs per day, per IP",
     retention: "2 hours",
   },
   {
@@ -213,15 +213,22 @@ export default function TermsOfServicePage() {
                 <h3 className="mb-3 text-lg font-medium">How credits work</h3>
                 <ul className="mb-3 list-disc space-y-1 pl-6">
                   <li>
-                    <strong>1 credit = 1 minute of source video</strong> encoded
-                    with H.264. H.265/HEVC costs 2 credits per minute because it
-                    takes roughly four times the machine time.
+                    <strong>1 credit = 1 billed encoder minute.</strong> We
+                    charge exactly what our encoding provider charges us, with
+                    no markup on the meter itself.
                   </li>
                   <li>
                     <strong>Minimum 3 credits per job.</strong> Our provider
                     bills a full minute for each of the three pipeline stages
                     (import, compress, export), so a five-second clip costs the
-                    same floor as a three-minute one.
+                    same floor as a three-minute one. That floor covers any
+                    1080p source up to roughly seven minutes; beyond that the
+                    encode crosses into further billed minutes — a 15-minute
+                    recording is 4 credits, a 40-minute 4K file is 7.
+                  </li>
+                  <li>
+                    <strong>H.265/HEVC costs more</strong> because it is roughly
+                    3.8x slower to encode, and therefore books more minutes.
                   </li>
                   <li>
                     <strong>Charged up front, refunded on failure.</strong>{" "}
