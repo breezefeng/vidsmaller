@@ -1,3 +1,4 @@
+import CrfCurveChart from '@/components/charts/CrfCurveChart';
 import FeatureBadge from '@/components/shared/FeatureBadge';
 import { useTranslations } from 'next-intl';
 
@@ -30,6 +31,12 @@ export default function Specs() {
           <p className="max-w-3xl text-xl text-gray-600 dark:text-gray-400">
             {t('description')}
           </p>
+        </div>
+
+        {/* The prose below says compressibility depends on the source. This is
+            the measurement that makes that concrete instead of evasive. */}
+        <div className="mb-12">
+          <CrfCurveChart />
         </div>
 
         <div className="grid gap-x-10 gap-y-8 md:grid-cols-2">
