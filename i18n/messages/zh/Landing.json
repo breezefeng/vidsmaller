@@ -22,6 +22,23 @@
     },
     "title": "压缩视频需要的一切",
     "description": "五种压缩模式、二十多种输入格式，还有一个你关掉网页也照跑的队列。",
+    "visuals": {
+      "targetSize": {
+        "original": "原片",
+        "target": "目标 {size}"
+      },
+      "quality": {
+        "title": "恒定质量（CRF）",
+        "scaleLow": "{value} · 视觉无损",
+        "scaleHigh": "{value} · 极小",
+        "h264Note": "哪都能播",
+        "h265Note": "再小约 30%"
+      },
+      "cloud": {
+        "title": "跑在我们的服务器上",
+        "queued": "排队中"
+      }
+    },
     "items": [
       {
         "title": "精确压到指定大小",

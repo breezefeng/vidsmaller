@@ -25,10 +25,12 @@ import {
   UploadCloud,
   Zap,
 } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { useCallback, useState } from 'react';
 import { useDropzone } from 'react-dropzone';
 
 export default function Compressor() {
+  const t = useTranslations('Compressor');
   const {
     items,
     settings,
@@ -82,22 +84,19 @@ export default function Compressor() {
 
           <div>
             <p className="text-lg font-semibold">
-              {isDragActive ? 'Drop your video here' : 'Drop a video, or choose a file'}
+              {isDragActive ? t('dropzone.active') : t('dropzone.idle')}
             </p>
             <p className="mt-1 text-sm text-muted-foreground">
-              MP4 · MOV · MKV · AVI · WebM and 20+ more · up to{' '}
-              {formatBytes(maxSize)}
+              {t('dropzone.formats', { size: formatBytes(maxSize) })}
             </p>
           </div>
 
           <Button size="lg" onClick={open} className="h-11 rounded-xl px-8">
             <Sparkles className="mr-2 h-4 w-4" />
-            Choose video
+            {t('dropzone.chooseVideo')}
           </Button>
 
-          <p className="text-xs text-muted-foreground">
-            No watermark · files are processed in the cloud and auto-deleted
-          </p>
+          <p className="text-xs text-muted-foreground">{t('dropzone.privacy')}</p>
         </div>
       </div>
 
@@ -107,12 +106,12 @@ export default function Compressor() {
           {context?.signedIn ? (
             <span className="flex items-center gap-1">
               <Coins className="h-3.5 w-3.5" />
-              {context.credits} credits
+              {t('status.credits', { count: context.credits })}
             </span>
           ) : (
             <span className="flex items-center gap-1">
               <Zap className="h-3.5 w-3.5" />
-              Free trial · no sign-up needed
+              {t('status.freeTrial')}
             </span>
           )}
           {context?.tier && (
@@ -124,7 +123,7 @@ export default function Compressor() {
 
         {!context?.signedIn && (
           <I18nLink href="/login" className="underline hover:text-foreground">
-            Sign in for 1&nbsp;GB files &amp; batch mode
+            {t('status.signInCta')}
           </I18nLink>
         )}
       </div>
@@ -146,11 +145,11 @@ export default function Compressor() {
           <button className="flex w-full items-center justify-between p-4 text-left">
             <span className="flex items-center gap-2 text-sm font-medium">
               <Settings2 className="h-4 w-4" />
-              Compression settings
+              {t('settings.title')}
               <Badge variant="secondary" className="ml-1 text-[10px]">
                 {settings.mode === 'preset'
-                  ? settings.preset
-                  : settings.mode.replace('_', ' ')}
+                  ? t(`settings.presets.${settings.preset}.title`)
+                  : t(`settings.modes.${settings.mode}`)}
               </Badge>
             </span>
             <ChevronDown
@@ -194,7 +193,7 @@ export default function Compressor() {
               onClick={startAll}
             >
               <Zap className="mr-2 h-4 w-4" />
-              {stats.busy ? 'Working…' : 'Compress now'}
+              {stats.busy ? t('queue.working') : t('queue.compressNow')}
             </Button>
 
             <Button
@@ -205,15 +204,19 @@ export default function Compressor() {
               disabled={stats.busy}
             >
               <Trash2 className="mr-2 h-4 w-4" />
-              Clear
+              {t('queue.clear')}
             </Button>
 
             {stats.done > 0 && stats.savedBytes > 0 && (
-              <div className="ml-auto text-sm">
-                <span className="text-muted-foreground">Saved </span>
-                <span className="font-semibold text-emerald-600">
-                  {formatBytes(stats.savedBytes)} (−{stats.savedPercent}%)
-                </span>
+              <div className="ml-auto text-sm text-muted-foreground">
+                {t.rich('queue.saved', {
+                  amount: `${formatBytes(stats.savedBytes)} (−${stats.savedPercent}%)`,
+                  hl: (chunks) => (
+                    <span className="font-semibold text-emerald-600">
+                      {chunks}
+                    </span>
+                  ),
+                })}
               </div>
             )}
           </div>

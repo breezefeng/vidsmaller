@@ -1,0 +1,110 @@
+{
+  "dropzone": {
+    "idle": "動画をドロップ、またはファイルを選択",
+    "active": "ここにドロップしてください",
+    "formats": "MP4 · MOV · MKV · AVI · WebM ほか 20 種類以上 · 最大 {size}",
+    "chooseVideo": "動画を選択",
+    "privacy": "ウォーターマークなし · ファイルはクラウドで処理され自動削除されます"
+  },
+  "status": {
+    "credits": "{count} クレジット",
+    "freeTrial": "無料でお試し · 登録不要",
+    "signInCta": "ログインすると 1 GB のファイルと一括処理が使えます"
+  },
+  "settings": {
+    "title": "圧縮設定",
+    "modes": {
+      "preset": "プリセット",
+      "target_size": "目標サイズ",
+      "quality": "画質",
+      "resolution": "解像度",
+      "bitrate": "ビットレート"
+    },
+    "presets": {
+      "light": {
+        "title": "軽め",
+        "hint": "元の約 70% · ほぼロスレス"
+      },
+      "balanced": {
+        "title": "バランス",
+        "hint": "元の約 50% · おすすめ"
+      },
+      "strong": {
+        "title": "強め",
+        "hint": "元の約 30% · 共有に最適"
+      },
+      "extreme": {
+        "title": "最大",
+        "hint": "元の約 15% · 最小サイズ"
+      }
+    },
+    "targetSize": {
+      "label": "目標ファイルサイズ（MB）",
+      "hint": "Discord（10 MB）、メール（25 MB）、WhatsApp（16 MB）の上限に便利です。"
+    },
+    "quality": {
+      "label": "固定品質（CRF）",
+      "best": "{value} · 最高画質",
+      "smallest": "{value} · 最小サイズ"
+    },
+    "resolution": {
+      "label": "出力解像度",
+      "placeholder": "解像度を選択"
+    },
+    "bitrate": {
+      "label": "最大ビットレート（kbps）"
+    },
+    "codec": {
+      "label": "コーデック",
+      "h264": "H.264 · 互換性が高い",
+      "h265": "H.265 · 約 30% 小さい"
+    },
+    "outputFormat": {
+      "label": "出力形式"
+    },
+    "speed": {
+      "label": "エンコード速度",
+      "veryfast": "非常に速い",
+      "faster": "やや速い",
+      "fast": "速い",
+      "medium": "標準 · バランス",
+      "slow": "遅い · 圧縮率優先"
+    },
+    "oldDevice": {
+      "label": "旧端末互換モード",
+      "hint": "baseline プロファイル + yuv420p。少し大きくなりますが、どの機器でも再生できます。"
+    }
+  },
+  "queue": {
+    "compressNow": "圧縮する",
+    "working": "処理中…",
+    "clear": "クリア",
+    "saved": "削減 <hl>{amount}</hl>",
+    "remove": "削除",
+    "download": "ダウンロード",
+    "retry": "再試行",
+    "errorFallback": "問題が発生しました。",
+    "phase": {
+      "ready": "待機中",
+      "creating": "準備中…",
+      "uploading": "アップロード中",
+      "processing": "圧縮中",
+      "done": "完了",
+      "error": "失敗",
+      "canceled": "キャンセル済み"
+    },
+    "progress": {
+      "creating": "ジョブを作成中…",
+      "uploading": "アップロード中 {percent}%",
+      "processing": "サーバーで圧縮中… {percent}%"
+    }
+  },
+  "errors": {
+    "batchLimit": "現在のプランでは一度に {count} 個までしか登録できません。",
+    "fileTooLarge": "「{name}」はご利用中のプランのサイズ上限を超えています。",
+    "noUploadTarget": "アップロードを開始できませんでした。もう一度お試しください。",
+    "lostConnection": "サーバーとの接続が切断されました",
+    "timedOut": "タイムアウトしました",
+    "generic": "問題が発生しました"
+  }
+}

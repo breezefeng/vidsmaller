@@ -1,0 +1,110 @@
+{
+  "dropzone": {
+    "idle": "把视频拖进来，或者选个文件",
+    "active": "松手就开始",
+    "formats": "MP4 · MOV · MKV · AVI · WebM 等 20 多种格式 · 最大 {size}",
+    "chooseVideo": "选择视频",
+    "privacy": "不加水印 · 文件在云端处理并自动删除"
+  },
+  "status": {
+    "credits": "{count} 积分",
+    "freeTrial": "免费试用 · 无需注册",
+    "signInCta": "登录后可传 1 GB 文件并批量处理"
+  },
+  "settings": {
+    "title": "压缩设置",
+    "modes": {
+      "preset": "预设",
+      "target_size": "目标体积",
+      "quality": "画质",
+      "resolution": "分辨率",
+      "bitrate": "码率"
+    },
+    "presets": {
+      "light": {
+        "title": "轻度",
+        "hint": "约为原片 70% · 接近无损"
+      },
+      "balanced": {
+        "title": "均衡",
+        "hint": "约为原片 50% · 推荐"
+      },
+      "strong": {
+        "title": "强力",
+        "hint": "约为原片 30% · 适合分享"
+      },
+      "extreme": {
+        "title": "极限",
+        "hint": "约为原片 15% · 体积最小"
+      }
+    },
+    "targetSize": {
+      "label": "目标文件体积（MB）",
+      "hint": "适合 Discord（10 MB）、邮件（25 MB）或 WhatsApp（16 MB）的上限。"
+    },
+    "quality": {
+      "label": "恒定质量（CRF）",
+      "best": "{value} · 画质最好",
+      "smallest": "{value} · 体积最小"
+    },
+    "resolution": {
+      "label": "输出分辨率",
+      "placeholder": "选择一个分辨率"
+    },
+    "bitrate": {
+      "label": "最大码率（kbps）"
+    },
+    "codec": {
+      "label": "编码器",
+      "h264": "H.264 · 兼容性最好",
+      "h265": "H.265 · 再小约 30%"
+    },
+    "outputFormat": {
+      "label": "输出格式"
+    },
+    "speed": {
+      "label": "编码速度",
+      "veryfast": "极快",
+      "faster": "较快",
+      "fast": "快",
+      "medium": "中等 · 均衡",
+      "slow": "慢 · 压缩率最高"
+    },
+    "oldDevice": {
+      "label": "老设备兼容模式",
+      "hint": "baseline profile + yuv420p，体积略大，但哪台机器都能播。"
+    }
+  },
+  "queue": {
+    "compressNow": "开始压缩",
+    "working": "处理中…",
+    "clear": "清空",
+    "saved": "已省下 <hl>{amount}</hl>",
+    "remove": "移除",
+    "download": "下载",
+    "retry": "重试",
+    "errorFallback": "出了点问题。",
+    "phase": {
+      "ready": "待处理",
+      "creating": "准备中…",
+      "uploading": "上传中",
+      "processing": "压缩中",
+      "done": "完成",
+      "error": "失败",
+      "canceled": "已取消"
+    },
+    "progress": {
+      "creating": "正在创建任务…",
+      "uploading": "上传中 {percent}%",
+      "processing": "服务器压缩中… {percent}%"
+    }
+  },
+  "errors": {
+    "batchLimit": "当前套餐一次最多只能排 {count} 个文件。",
+    "fileTooLarge": "「{name}」超出了你当前套餐的体积上限。",
+    "noUploadTarget": "上传没能开始，请重试。",
+    "lostConnection": "与服务器的连接中断",
+    "timedOut": "处理超时",
+    "generic": "出了点问题"
+  }
+}

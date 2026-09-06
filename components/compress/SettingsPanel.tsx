@@ -20,24 +20,17 @@ import {
 } from '@/lib/freeconvert/presets';
 import { cn } from '@/lib/utils';
 import { Lock } from 'lucide-react';
-
-const PRESET_COPY: Record<
-  keyof typeof QUICK_PRESETS,
-  { title: string; hint: string }
-> = {
-  light: { title: 'Light', hint: '~70% of original · near-lossless' },
-  balanced: { title: 'Balanced', hint: '~50% of original · recommended' },
-  strong: { title: 'Strong', hint: '~30% of original · great for sharing' },
-  extreme: { title: 'Extreme', hint: '~15% of original · smallest file' },
-};
+import { useTranslations } from 'next-intl';
 
 const MODES = [
-  { value: 'preset', label: 'Preset' },
-  { value: 'target_size', label: 'Target size' },
-  { value: 'quality', label: 'Quality' },
-  { value: 'resolution', label: 'Resolution' },
-  { value: 'bitrate', label: 'Bitrate' },
+  'preset',
+  'target_size',
+  'quality',
+  'resolution',
+  'bitrate',
 ] as const;
+
+const SPEEDS = ['veryfast', 'faster', 'fast', 'medium', 'slow'] as const;
 
 interface Props {
   settings: CompressSettings;
@@ -52,6 +45,8 @@ export default function SettingsPanel({
   context,
   disabled,
 }: Props) {
+  const t = useTranslations('Compressor.settings');
+
   const set = <K extends keyof CompressSettings>(
     key: K,
     value: CompressSettings[K]
@@ -65,10 +60,19 @@ export default function SettingsPanel({
         value={settings.mode}
         onValueChange={(v) => set('mode', v as CompressSettings['mode'])}
       >
-        <TabsList className="grid w-full grid-cols-5">
-          {MODES.map((m) => (
-            <TabsTrigger key={m.value} value={m.value} className="text-xs">
-              {m.label}
+        {/*
+          Five equal columns cannot fit translated labels on a phone (CJK in
+          particular), so the bar wraps below `sm` and each row stretches to
+          fill. `h-auto` is needed to escape the fixed `h-9` on TabsList.
+        */}
+        <TabsList className="flex h-auto w-full flex-wrap gap-1">
+          {MODES.map((mode) => (
+            <TabsTrigger
+              key={mode}
+              value={mode}
+              className="h-8 flex-1 basis-24 px-1.5 text-xs sm:basis-0"
+            >
+              {t(`modes.${mode}`)}
             </TabsTrigger>
           ))}
         </TabsList>
@@ -93,10 +97,10 @@ export default function SettingsPanel({
                 )}
               >
                 <div className="text-sm font-semibold">
-                  {PRESET_COPY[key].title}
+                  {t(`presets.${key}.title`)}
                 </div>
                 <div className="mt-1 text-[11px] leading-tight text-muted-foreground">
-                  {PRESET_COPY[key].hint}
+                  {t(`presets.${key}.hint`)}
                 </div>
               </button>
             );
@@ -106,7 +110,7 @@ export default function SettingsPanel({
 
       {settings.mode === 'target_size' && (
         <div className="space-y-2">
-          <Label htmlFor="target-size">Target file size (MB)</Label>
+          <Label htmlFor="target-size">{t('targetSize.label')}</Label>
           <input
             id="target-size"
             type="number"
@@ -119,7 +123,7 @@ export default function SettingsPanel({
             className="h-10 w-full rounded-md border bg-background px-3 text-sm"
           />
           <p className="text-xs text-muted-foreground">
-            Handy for Discord (10 MB), email (25 MB) or WhatsApp (16 MB) limits.
+            {t('targetSize.hint')}
           </p>
         </div>
       )}
@@ -127,7 +131,7 @@ export default function SettingsPanel({
       {settings.mode === 'quality' && (
         <div className="space-y-3">
           <div className="flex items-center justify-between">
-            <Label>Constant quality (CRF)</Label>
+            <Label>{t('quality.label')}</Label>
             <Badge variant="secondary">{settings.crf ?? 28}</Badge>
           </div>
           <Slider
@@ -137,16 +141,16 @@ export default function SettingsPanel({
             value={[settings.crf ?? 28]}
             onValueChange={([v]) => set('crf', v)}
           />
-          <div className="flex justify-between text-xs text-muted-foreground">
-            <span>18 · best quality</span>
-            <span>51 · smallest</span>
+          <div className="flex justify-between gap-2 text-xs text-muted-foreground">
+            <span>{t('quality.best', { value: '18' })}</span>
+            <span>{t('quality.smallest', { value: '51' })}</span>
           </div>
         </div>
       )}
 
       {settings.mode === 'resolution' && (
         <div className="space-y-2">
-          <Label>Output resolution</Label>
+          <Label>{t('resolution.label')}</Label>
           <Select
             value={settings.resolution ?? '1280:720'}
             onValueChange={(v) =>
@@ -154,7 +158,7 @@ export default function SettingsPanel({
             }
           >
             <SelectTrigger>
-              <SelectValue placeholder="Pick a resolution" />
+              <SelectValue placeholder={t('resolution.placeholder')} />
             </SelectTrigger>
             <SelectContent>
               {RESOLUTION_PRESETS.map((r) => (
@@ -169,7 +173,7 @@ export default function SettingsPanel({
 
       {settings.mode === 'bitrate' && (
         <div className="space-y-2">
-          <Label htmlFor="bitrate">Max bitrate (kbps)</Label>
+          <Label htmlFor="bitrate">{t('bitrate.label')}</Label>
           <input
             id="bitrate"
             type="number"
@@ -187,7 +191,7 @@ export default function SettingsPanel({
 
       <div className="grid gap-4 sm:grid-cols-3">
         <div className="space-y-2">
-          <Label>Codec</Label>
+          <Label>{t('codec.label')}</Label>
           <Select
             value={settings.codec}
             onValueChange={(v) => set('codec', v as CompressSettings['codec'])}
@@ -196,11 +200,11 @@ export default function SettingsPanel({
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="libx264">H.264 · most compatible</SelectItem>
+              <SelectItem value="libx264">{t('codec.h264')}</SelectItem>
               <SelectItem value="libx265" disabled={!advancedCodecs}>
                 <span className="flex items-center gap-1.5">
-                  H.265 · ~30% smaller
-                  {!advancedCodecs && <Lock className="h-3 w-3" />}
+                  {t('codec.h265')}
+                  {!advancedCodecs && <Lock className="h-3 w-3 shrink-0" />}
                 </span>
               </SelectItem>
             </SelectContent>
@@ -208,7 +212,7 @@ export default function SettingsPanel({
         </div>
 
         <div className="space-y-2">
-          <Label>Output format</Label>
+          <Label>{t('outputFormat.label')}</Label>
           <Select
             value={settings.outputFormat}
             onValueChange={(v) =>
@@ -228,7 +232,7 @@ export default function SettingsPanel({
         </div>
 
         <div className="space-y-2">
-          <Label>Encoder speed</Label>
+          <Label>{t('speed.label')}</Label>
           <Select
             value={settings.speed}
             onValueChange={(v) => set('speed', v as CompressSettings['speed'])}
@@ -237,21 +241,21 @@ export default function SettingsPanel({
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="veryfast">Very fast</SelectItem>
-              <SelectItem value="faster">Faster</SelectItem>
-              <SelectItem value="fast">Fast</SelectItem>
-              <SelectItem value="medium">Medium · balanced</SelectItem>
-              <SelectItem value="slow">Slow · best ratio</SelectItem>
+              {SPEEDS.map((speed) => (
+                <SelectItem key={speed} value={speed}>
+                  {t(`speed.${speed}`)}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
       </div>
 
       <div className="flex items-center justify-between rounded-lg border p-3">
-        <div>
-          <div className="text-sm font-medium">Old-device compatibility</div>
+        <div className="min-w-0">
+          <div className="text-sm font-medium">{t('oldDevice.label')}</div>
           <div className="text-xs text-muted-foreground">
-            Baseline profile + yuv420p. Slightly larger, plays everywhere.
+            {t('oldDevice.hint')}
           </div>
         </div>
         <Switch

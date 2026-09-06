@@ -18,6 +18,7 @@ import {
   DEFAULT_SETTINGS,
   type CompressSettings,
 } from '@/lib/freeconvert/presets';
+import { useTranslations } from 'next-intl';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 export type ItemPhase =
@@ -57,6 +58,7 @@ export function useCompressor() {
   const [items, setItems] = useState<CompressItem[]>([]);
   const [settings, setSettings] = useState<CompressSettings>(DEFAULT_SETTINGS);
   const [context, setContext] = useState<CompressorContext | null>(null);
+  const t = useTranslations('Compressor.errors');
   const [globalError, setGlobalError] = useState<string | null>(null);
 
   const abortControllers = useRef(new Map<string, AbortController>());
@@ -105,15 +107,11 @@ export function useCompressor() {
       const accepted: File[] = [];
       for (const file of files) {
         if (accepted.length >= maxFiles) {
-          setGlobalError(
-            `You can queue up to ${maxFiles} file${maxFiles > 1 ? 's' : ''} at a time on your current plan.`
-          );
+          setGlobalError(t('batchLimit', { count: maxFiles }));
           break;
         }
         if (file.size > maxSize) {
-          setGlobalError(
-            `"${file.name}" exceeds the size limit for your plan.`
-          );
+          setGlobalError(t('fileTooLarge', { name: file.name }));
           continue;
         }
         accepted.push(file);
@@ -149,7 +147,7 @@ export function useCompressor() {
         })
       );
     },
-    [context, patch]
+    [context, patch, t]
   );
 
   const removeItem = useCallback((key: string) => {
@@ -220,7 +218,7 @@ export function useCompressor() {
           if (attempts > 5) {
             patch(key, {
               phase: 'error',
-              error: (err as Error).message || 'Lost connection to the server',
+              error: (err as Error).message || t('lostConnection'),
             });
             return;
           }
@@ -228,7 +226,7 @@ export function useCompressor() {
 
         // 30 min ceiling
         if (attempts > 600) {
-          patch(key, { phase: 'error', error: 'Timed out' });
+          patch(key, { phase: 'error', error: t('timedOut') });
           return;
         }
 
@@ -238,7 +236,7 @@ export function useCompressor() {
 
       pollTimers.current.set(key, setTimeout(tick, POLL_INTERVAL_MS));
     },
-    [applyJob, patch, refreshContext]
+    [applyJob, patch, refreshContext, t]
   );
 
   /* ------------------------------- run --------------------------------- */
@@ -271,7 +269,7 @@ export function useCompressor() {
 
         try {
           if (!created.upload) {
-            throw new UploadTransportError('No upload target returned');
+            throw new UploadTransportError(t('noUploadTarget'));
           }
           await uploadFileDirect(
             item.file,
@@ -331,14 +329,14 @@ export function useCompressor() {
         }
         patch(item.key, {
           phase: 'error',
-          error: (err as Error).message || 'Something went wrong',
+          error: (err as Error).message || t('generic'),
         });
       } finally {
         abortControllers.current.delete(item.key);
         refreshContext();
       }
     },
-    [applyJob, context, patch, refreshContext, settings, startPolling]
+    [applyJob, context, patch, refreshContext, settings, startPolling, t]
   );
 
   const startAll = useCallback(() => {

@@ -1,0 +1,110 @@
+{
+  "dropzone": {
+    "idle": "Drop a video, or choose a file",
+    "active": "Drop your video here",
+    "formats": "MP4 · MOV · MKV · AVI · WebM and 20+ more · up to {size}",
+    "chooseVideo": "Choose video",
+    "privacy": "No watermark · files are processed in the cloud and auto-deleted"
+  },
+  "status": {
+    "credits": "{count, plural, one {# credit} other {# credits}}",
+    "freeTrial": "Free trial · no sign-up needed",
+    "signInCta": "Sign in for 1 GB files & batch mode"
+  },
+  "settings": {
+    "title": "Compression settings",
+    "modes": {
+      "preset": "Preset",
+      "target_size": "Target size",
+      "quality": "Quality",
+      "resolution": "Resolution",
+      "bitrate": "Bitrate"
+    },
+    "presets": {
+      "light": {
+        "title": "Light",
+        "hint": "~70% of original · near-lossless"
+      },
+      "balanced": {
+        "title": "Balanced",
+        "hint": "~50% of original · recommended"
+      },
+      "strong": {
+        "title": "Strong",
+        "hint": "~30% of original · great for sharing"
+      },
+      "extreme": {
+        "title": "Extreme",
+        "hint": "~15% of original · smallest file"
+      }
+    },
+    "targetSize": {
+      "label": "Target file size (MB)",
+      "hint": "Handy for Discord (10 MB), email (25 MB) or WhatsApp (16 MB) limits."
+    },
+    "quality": {
+      "label": "Constant quality (CRF)",
+      "best": "{value} · best quality",
+      "smallest": "{value} · smallest"
+    },
+    "resolution": {
+      "label": "Output resolution",
+      "placeholder": "Pick a resolution"
+    },
+    "bitrate": {
+      "label": "Max bitrate (kbps)"
+    },
+    "codec": {
+      "label": "Codec",
+      "h264": "H.264 · most compatible",
+      "h265": "H.265 · ~30% smaller"
+    },
+    "outputFormat": {
+      "label": "Output format"
+    },
+    "speed": {
+      "label": "Encoder speed",
+      "veryfast": "Very fast",
+      "faster": "Faster",
+      "fast": "Fast",
+      "medium": "Medium · balanced",
+      "slow": "Slow · best ratio"
+    },
+    "oldDevice": {
+      "label": "Old-device compatibility",
+      "hint": "Baseline profile + yuv420p. Slightly larger, plays everywhere."
+    }
+  },
+  "queue": {
+    "compressNow": "Compress now",
+    "working": "Working…",
+    "clear": "Clear",
+    "saved": "Saved <hl>{amount}</hl>",
+    "remove": "Remove",
+    "download": "Download",
+    "retry": "Retry",
+    "errorFallback": "Something went wrong.",
+    "phase": {
+      "ready": "Ready",
+      "creating": "Preparing…",
+      "uploading": "Uploading",
+      "processing": "Compressing",
+      "done": "Done",
+      "error": "Failed",
+      "canceled": "Canceled"
+    },
+    "progress": {
+      "creating": "Creating job…",
+      "uploading": "Uploading {percent}%",
+      "processing": "Compressing on the server… {percent}%"
+    }
+  },
+  "errors": {
+    "batchLimit": "You can queue up to {count, plural, one {# file} other {# files}} at a time on your current plan.",
+    "fileTooLarge": "\"{name}\" exceeds the size limit for your plan.",
+    "noUploadTarget": "Upload could not start. Please try again.",
+    "lostConnection": "Lost connection to the server",
+    "timedOut": "Timed out",
+    "generic": "Something went wrong"
+  }
+}

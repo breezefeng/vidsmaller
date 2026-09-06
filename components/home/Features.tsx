@@ -32,7 +32,7 @@ const FeatureCard = ({
   return (
     <div key={feature.title} className="w-full py-4">
       <div className=" mx-auto">
-        <div className="grid  px-8 py-4 md:py-8 grid-cols-1 gap-8 items-center lg:grid-cols-2">
+        <div className="grid px-0 sm:px-8 py-4 md:py-8 grid-cols-1 gap-8 items-center lg:grid-cols-2">
           <div className="flex gap-10 flex-col">
             <div className="flex gap-4 flex-col">
               <div className="flex gap-2 flex-col">
@@ -61,7 +61,7 @@ const FeatureCard = ({
               ))}
             </div>
           </div>
-          <div className="rounded-lg p-2 border">
+          <div className="min-w-0 rounded-lg border p-2">
             {!feature.images?.length ? (
               <FeatureVisual index={index} />
             ) : feature.images.length > 1 ? (

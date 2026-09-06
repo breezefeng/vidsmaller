@@ -22,6 +22,23 @@
     },
     "title": "動画を小さくするために必要なすべて",
     "description": "5 つの圧縮モード、20 以上の入力形式、そしてタブを閉じても走り続けるキュー。",
+    "visuals": {
+      "targetSize": {
+        "original": "元の動画",
+        "target": "目標 {size}"
+      },
+      "quality": {
+        "title": "固定品質（CRF）",
+        "scaleLow": "{value} · 視覚的にロスレス",
+        "scaleHigh": "{value} · 最小",
+        "h264Note": "どこでも再生",
+        "h265Note": "約 30% 小さい"
+      },
+      "cloud": {
+        "title": "当社サーバーで処理中",
+        "queued": "待機中"
+      }
+    },
     "items": [
       {
         "title": "ファイルサイズをピタリと指定",

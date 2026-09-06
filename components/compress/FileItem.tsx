@@ -15,6 +15,7 @@ import {
   RotateCcw,
   X,
 } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 interface Props {
   item: CompressItem;
@@ -22,17 +23,9 @@ interface Props {
   onRetry: (key: string) => void;
 }
 
-const PHASE_LABEL: Record<CompressItem['phase'], string> = {
-  ready: 'Ready',
-  creating: 'Preparing…',
-  uploading: 'Uploading',
-  processing: 'Compressing',
-  done: 'Done',
-  error: 'Failed',
-  canceled: 'Canceled',
-};
-
 export default function FileItem({ item, onRemove, onRetry }: Props) {
+  const t = useTranslations('Compressor.queue');
+
   const busy =
     item.phase === 'creating' ||
     item.phase === 'uploading' ||
@@ -96,14 +89,14 @@ export default function FileItem({ item, onRemove, onRetry }: Props) {
                 }
                 className="text-[10px]"
               >
-                {PHASE_LABEL[item.phase]}
+                {t(`phase.${item.phase}`)}
               </Badge>
               <Button
                 variant="ghost"
                 size="icon"
                 className="h-7 w-7"
                 onClick={() => onRemove(item.key)}
-                aria-label="Remove"
+                aria-label={t('remove')}
               >
                 <X className="h-3.5 w-3.5" />
               </Button>
@@ -115,10 +108,12 @@ export default function FileItem({ item, onRemove, onRetry }: Props) {
               <Progress value={percent} className="h-1.5" />
               <p className="text-[11px] text-muted-foreground">
                 {item.phase === 'uploading'
-                  ? `Uploading ${item.uploadPercent}%`
+                  ? t('progress.uploading', { percent: item.uploadPercent })
                   : item.phase === 'creating'
-                    ? 'Creating job…'
-                    : `Compressing on the server… ${item.processPercent}%`}
+                    ? t('progress.creating')
+                    : t('progress.processing', {
+                        percent: item.processPercent,
+                      })}
               </p>
             </div>
           )}
@@ -143,7 +138,7 @@ export default function FileItem({ item, onRemove, onRetry }: Props) {
                 <Button asChild size="sm" className="ml-auto h-8">
                   <a href={item.downloadUrl} download>
                     <Download className="mr-1.5 h-3.5 w-3.5" />
-                    Download
+                    {t('download')}
                   </a>
                 </Button>
               )}
@@ -153,7 +148,7 @@ export default function FileItem({ item, onRemove, onRetry }: Props) {
           {item.phase === 'error' && (
             <div className="mt-3 flex items-center gap-2">
               <p className="flex-1 text-xs text-destructive">
-                {item.error || 'Something went wrong.'}
+                {item.error || t('errorFallback')}
               </p>
               <Button
                 variant="outline"
@@ -162,7 +157,7 @@ export default function FileItem({ item, onRemove, onRetry }: Props) {
                 onClick={() => onRetry(item.key)}
               >
                 <RotateCcw className="mr-1.5 h-3.5 w-3.5" />
-                Retry
+                {t('retry')}
               </Button>
             </div>
           )}
