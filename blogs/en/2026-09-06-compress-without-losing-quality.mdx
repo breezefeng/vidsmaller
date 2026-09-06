@@ -1,0 +1,266 @@
+---
+title: "How to Compress a Video Without Losing Quality (2026)"
+description: "Four levers control video file size, and one of them does most of the work. A practical guide to shrinking a video by 70% or more without a visible difference, with measured numbers."
+slug: /how-to-compress-a-video-without-losing-quality
+tags: video-compression,mp4,bitrate,resolution,h264
+publishedAt: 2026-09-06
+status: published
+isPinned: true
+---
+
+"Without losing quality" is doing a lot of work in that sentence, so let us be
+straight about it up front: every practical video compressor is lossy.
+Information is discarded. The honest question is not whether anything is lost —
+it is whether you can see what was lost, and that depends far more on your
+source file than on the tool you use.
+
+The good news is that most videos carry an enormous amount of slack. Phone
+recordings, screen captures and exports from editing software are routinely
+encoded well above what their content needs. Removing 70% of the file changes
+nothing you can perceive. Footage that is already tightly compressed has no
+slack left, and pushing it will show.
+
+This guide covers how to tell which one you have, and what to do about it.
+
+## Quick takeaways
+
+- **Four things control file size**, in rough order of impact: resolution,
+  bitrate, duration, codec.
+- **Dropping the resolution is the single biggest win** and usually the least
+  visible one, if the video will be watched on a phone.
+- **Screen recordings compress dramatically better than camera footage.** In
+  our tests, a screen capture held VMAF 89.9 at 0.79 MB where camera footage
+  fell to 74.4 at three times the size.
+- **Trim before you compress.** Thirty seconds you cut is thirty seconds of
+  bits you never have to spend.
+- **Stay on H.264 if the file is going to someone else.** H.265 is ~30% smaller
+  and will not play on plenty of devices.
+- If you have a hard limit to clear, use a **target size** mode rather than
+  guessing at quality settings.
+
+## First: why is your video big?
+
+Four factors, and they are not equally important.
+
+### 1. Resolution — the biggest lever
+
+A 4K frame carries four times the pixels of a 1080p frame. A 1080p frame
+carries just over twice a 720p one.
+
+Here is the thing people miss: **resolution only matters relative to where the
+video will be watched.** A 4K clip that will be viewed in a phone-sized window
+in a chat app is carrying millions of pixels that the screen will throw away
+anyway. Scaling it to 1080p before sending costs you nothing visible and is the
+single largest saving available.
+
+Rule of thumb:
+
+- Going to someone's phone, in a messaging app → 720p is plenty
+- Going on a website as an inline video → 1080p
+- Going to a TV, or being edited further → keep the original
+
+### 2. Bitrate — where the slack lives
+
+Bitrate is how many bits per second the encoder spends. It is where "badly
+encoded" shows up, and it is why so many files compress so well.
+
+Your phone does not carefully optimise. It encodes fast, in real time, with a
+generous bitrate, because it has a battery to preserve and no idea what the
+footage contains. Screen recorders are worse. Export presets in editing
+software are frequently set to "high quality" and left there.
+
+All of that is slack. A re-encode that takes thirty seconds instead of
+real-time can describe the same content in far fewer bits.
+
+### 3. Duration — the one people forget
+
+Bits per second times seconds. Cutting the dead thirty seconds at the start of
+a screen recording removes those bits entirely, with no quality cost at all,
+because they were never encoded.
+
+Trimming is the only "compression" that is genuinely free. Do it first.
+
+### 4. Codec — real but oversold
+
+H.265 (HEVC) produces files roughly 30% smaller than H.264 at matching visual
+quality. That is a genuine improvement and it matters when you are archiving a
+lot of footage.
+
+It also encodes about 3.8x slower, and older phones, older TVs and some
+browsers will simply refuse to open it. **If the file is going to someone
+else's device, stay on H.264.** The 30% is not worth a message saying "it won't
+play for me".
+
+### What about frame rate?
+
+Less than people expect. Halving 60fps to 30fps does not halve the file — the
+encoder was already describing the second frame of each pair as "mostly like
+the last one". You will save far more by dropping one resolution step, and you
+will not make motion look choppy doing it.
+
+## How much can you actually save?
+
+This depends on your source far more than on your settings, and we have
+measured how much.
+
+We encoded three 1080p clips at six quality levels each and scored every result
+with VMAF, Netflix's perceptual quality metric. Around 93 is generally treated
+as the point where most viewers stop noticing a difference.
+
+| Source type | Best quality setting | A hard compression setting |
+| --- | --- | --- |
+| Screen recording | 2.09 MB · VMAF 96.7 | **0.79 MB · VMAF 89.9** |
+| Animation | 15.52 MB · VMAF 96.0 | 1.96 MB · VMAF 79.7 |
+| Camera footage | 12.74 MB · VMAF 97.2 | **2.43 MB · VMAF 74.4** |
+
+All three clips are ten seconds and 1080p, so those numbers are directly
+comparable.
+
+Read the two bold rows together. At the same aggressive setting the screen
+recording is **three times smaller** than the camera footage *and* scores 15.5
+VMAF points higher. Screen content is mostly flat colour and mostly unchanged
+between frames — an encoder can say "identical to last frame" in almost no
+bits. A moving scene with sensor noise has genuinely new information in every
+single frame.
+
+So when a compressor promises "up to 90% smaller", that number is real, and it
+is real for screen recordings. It is not real for your handheld holiday
+footage. Anyone quoting one number for both is not telling you the whole thing.
+
+The full measurements, method and limitations are in
+[CRF explained](/blog/crf-explained-what-number-to-use).
+
+## The practical method
+
+### Step 1 — trim anything you do not need
+
+Free. Do it before anything else.
+
+### Step 2 — decide where this video is going
+
+This determines everything downstream, and it is the step people skip.
+
+- **A hard upload limit?** Skip to the target-size approach below.
+- **Watched on a phone?** Scale to 720p and stop worrying about the rest.
+- **Going on your website?** 1080p, and get it well under 10 MB — a heavy hero
+  video is one of the most common causes of a poor Core Web Vitals score.
+- **Archiving?** Keep 1080p, use a stronger quality setting, and consider H.265
+  since only you will play it back.
+
+### Step 3 — pick resolution before quality
+
+If the destination does not need the pixels, drop them first. Scaling 4K to
+1080p typically removes more than half the file before you have touched a
+quality slider, and on a phone screen the result is indistinguishable.
+
+### Step 4 — then adjust quality
+
+Now use a preset or a CRF value. Start moderate. Look at the result. Adjust
+once. Two minutes of actually looking beats any recommended number, including
+the ones in this article.
+
+### Step 5 — check the difficult parts, not the average
+
+If you are going to spot-check, check the hardest few seconds: fast motion,
+rain, confetti, smoke, water, fine texture. Those are where compression
+artifacts show up first. A still shot of someone talking will look fine at
+almost any setting and tells you nothing.
+
+## When you have a hard limit
+
+If the requirement is "this must be under 20 MB", quality settings are the
+wrong tool — you would be guessing, encoding, measuring, and guessing again.
+
+Use a target-size mode. It encodes in two passes: the first measures how
+demanding the content is, the second spends exactly the budget available. It
+lands within a couple of percent of the number you typed.
+
+One caution: aim slightly under the ceiling. Landing 2% over a hard limit means
+the upload fails, and some platforms count bytes differently than your file
+manager does.
+
+The common limits, each with the arithmetic worked out for how long a clip fits:
+
+- [Discord](/compress-video-for-discord) — 20 MB free (raised from 10 MB in
+  August 2026), 50 MB Nitro Basic, 500 MB Nitro
+- [Email](/compress-video-for-email) — Gmail advertises 25 MB but measures the
+  base64-encoded attachment, so the real ceiling is about 18 MB
+- [WhatsApp](/compress-video-for-whatsapp) — 16 MB in chat, or 2 GB sent as a
+  document with no re-encoding
+- [TikTok](/compress-video-for-tiktok) — 72 MB from the Android app, 288 MB
+  from iOS
+- [Instagram](/compress-video-for-instagram) — 4 GB, but they re-encode
+  everything, so what you hand them matters more than the cap
+- [Telegram](/compress-video-for-telegram) — 2 GB free, 4 GB Premium
+- [Slack](/compress-video-for-slack) — 1 GB on every plan
+- [X (Twitter)](/compress-video-for-twitter) — 512 MB, but 2:20 of runtime
+  binds first
+
+## Mistakes that cost you quality for nothing
+
+**Compressing twice.** Every lossy pass discards information permanently. If
+you compress, look at it, and compress the result again, you are stacking
+losses. Go back to the original and use a stronger setting once.
+
+**Compressing before editing.** Edit the original, export once at the end.
+
+**Chasing a smaller number than you need.** If the limit is 20 MB, do not
+target 8. There is no prize.
+
+**Uploading a huge master to a platform that re-encodes.** Instagram, TikTok and
+WhatsApp all re-encode whatever you give them. Handing their encoder a 3 GB file
+does not preserve quality — it gives their encoder more to throw away, and it
+throws away whatever it likes. A clean, correctly sized file survives better.
+
+**Using H.265 for something you are sending to someone else.** Covered above,
+and it remains the most common cause of "it won't open".
+
+## FAQ
+
+### Can you really compress a video without losing quality?
+
+Not literally — lossy compression discards information by definition. But
+whether you can *see* the loss is a different question, and for most source
+material the answer is no. Phone recordings and screen captures carry so much
+slack that removing 70% of the file changes nothing perceptible. Footage that
+was already compressed hard has no slack, and pushing it will show.
+
+### What is the best format for a compressed video?
+
+MP4 with H.264 video and AAC audio. It plays on every phone, browser, TV and
+editing program in current use. MKV and WebM have real advantages in specific
+situations, but if the file is leaving your machine, MP4 is the answer.
+
+### Should I lower the resolution or the bitrate?
+
+Resolution first, if the destination does not need the pixels — it is the
+larger saving and usually the less visible one. Once the resolution matches the
+destination, tune the bitrate or quality setting.
+
+### Does compressing a video reduce its length or resolution?
+
+No. Compression re-encodes the same frames more efficiently. Length is
+unchanged, and resolution only changes if you explicitly ask for it. Those are
+separate operations that often live in the same tool.
+
+### Why is my compressed video still too big?
+
+Usually one of three things: the source is already efficiently encoded and has
+no slack; the clip is simply long, and duration multiplies everything; or the
+resolution is higher than the destination needs. Check duration and resolution
+before reaching for a more aggressive quality setting.
+
+### Is it safe to compress video online?
+
+It depends entirely on the operator, so ask them what they actually do with
+your file. Ours: your browser uploads over a one-time signed link to storage we
+control, the encoder pulls it server-to-server, and the staged copy is deleted
+the moment the job settles. Results expire after two hours for anonymous jobs,
+up to seven days when signed in. We do not watch, train on, share or resell
+anything.
+
+---
+
+[Compress a video now](/) — no account, no watermark, nothing to install. Or
+pick your [upload limit](/compress-video-for-discord) and we will set the
+target for you.

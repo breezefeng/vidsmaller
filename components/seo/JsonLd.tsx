@@ -248,3 +248,63 @@ export function BreadcrumbJsonLd({
     />
   );
 }
+
+/**
+ * A blog post.
+ *
+ * Deliberately carries `datePublished` and an author. The main competitor in
+ * this category publishes no dates anywhere, which lets them retitle a post
+ * "2027" every January at zero cost. We are betting the other way: these pages
+ * live or die on whether a reader believes the numbers in them, and an
+ * undated measurement is not a measurement.
+ */
+export async function ArticleJsonLd({
+  locale,
+  title,
+  description,
+  slug,
+  publishedAt,
+  modifiedAt,
+  image,
+}: {
+  locale: Locale;
+  title: string;
+  description: string;
+  /** Without the /blog prefix or leading slash. */
+  slug: string;
+  publishedAt: Date;
+  modifiedAt?: Date | null;
+  image?: string | null;
+}) {
+  const path = `/blog/${slug.replace(/^\//, '')}`;
+  const canonical = url(locale, path);
+
+  return (
+    <Script
+      data={{
+        '@context': 'https://schema.org',
+        '@type': 'BlogPosting',
+        '@id': `${canonical}#article`,
+        headline: title.slice(0, 110),
+        description,
+        inLanguage: LOCALE_TO_HREFLANG[locale] ?? locale,
+        datePublished: publishedAt.toISOString(),
+        dateModified: (modifiedAt ?? publishedAt).toISOString(),
+        mainEntityOfPage: { '@type': 'WebPage', '@id': canonical },
+        author: {
+          '@type': 'Organization',
+          '@id': organizationId(),
+          name: siteConfig.name,
+        },
+        publisher: { '@id': organizationId() },
+        ...(image
+          ? {
+              image: image.startsWith('http')
+                ? image
+                : `${siteConfig.url}${image.startsWith('/') ? '' : '/'}${image}`,
+            }
+          : {}),
+      }}
+    />
+  );
+}
