@@ -13,6 +13,8 @@
   },
   "settings": {
     "title": "Compression settings",
+    "howSmall": "How small?",
+    "advanced": "Advanced options",
     "modes": {
       "preset": "Preset",
       "target_size": "Target size",
@@ -23,20 +25,39 @@
     "presets": {
       "light": {
         "title": "Light",
+        "ratio": "~70% of original",
         "hint": "~70% of original · near-lossless"
       },
       "balanced": {
         "title": "Balanced",
+        "ratio": "~50% of original",
         "hint": "~50% of original · recommended"
       },
       "strong": {
         "title": "Strong",
+        "ratio": "~30% of original",
         "hint": "~30% of original · great for sharing"
       },
       "extreme": {
         "title": "Extreme",
+        "ratio": "~15% of original",
         "hint": "~15% of original · smallest file"
       }
+    },
+    "exact": {
+      "title": "Exact size",
+      "hint": "Pick MB"
+    },
+    "platforms": {
+      "discord": "Discord",
+      "whatsapp": "WhatsApp",
+      "email": "Email",
+      "reddit": "Reddit"
+    },
+    "fine": {
+      "label": "Fine control",
+      "off": "Off · use the option above",
+      "hint": "Overrides the preset with a single encoder parameter."
     },
     "targetSize": {
       "label": "Target file size (MB)",
@@ -77,8 +98,15 @@
   },
   "queue": {
     "compressNow": "Compress now",
+    "compressCount": "Compress {count} videos",
     "working": "Working…",
-    "clear": "Clear",
+    "clear": "Clear all",
+    "addAnother": "Add another video",
+    "cancel": "Cancel",
+    "willBe": "Estimated result: <hl>{size}</hl>",
+    "willProduce": "≈ <hl>{size}</hl> · −{percent}%",
+    "costCredits": "{count, plural, =0 {Free} one {# credit} other {# credits}}",
+    "costFree": "Free · no sign-up",
     "saved": "Saved <hl>{amount}</hl>",
     "remove": "Remove",
     "download": "Download",
@@ -91,7 +119,7 @@
       "processing": "Compressing",
       "done": "Done",
       "error": "Failed",
-      "canceled": "Canceled"
+      "canceled": "Canceled — press compress to try again"
     },
     "progress": {
       "creating": "Creating job…",
@@ -99,9 +127,16 @@
       "processing": "Compressing on the server… {percent}%"
     }
   },
+  "result": {
+    "title": "{count, plural, one {Your video is ready} other {# videos are ready}}",
+    "saved": "Saved {amount} · {percent}% smaller",
+    "another": "Compress another",
+    "retention": "Download links stay live for {hours, plural, one {# hour} other {# hours}}."
+  },
   "errors": {
     "batchLimit": "You can queue up to {count, plural, one {# file} other {# files}} at a time on your current plan.",
     "fileTooLarge": "\"{name}\" exceeds the size limit for your plan.",
+    "notEnoughCredits": "This batch needs {need} credits and you have {have}. Remove a file or top up.",
     "noUploadTarget": "Upload could not start. Please try again.",
     "lostConnection": "Lost connection to the server",
     "timedOut": "Timed out",

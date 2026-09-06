@@ -37,11 +37,62 @@ export interface VideoMeta {
   durationSeconds: number | null;
   width: number | null;
   height: number | null;
+  /** small JPEG data URL of a frame, for the queue card */
+  poster: string | null;
+}
+
+/** Grab a frame as a small data URL. Best-effort: never rejects, never blocks. */
+function grabPoster(el: HTMLVideoElement): Promise<string | null> {
+  return new Promise((resolve) => {
+    let settled = false;
+    const finish = (value: string | null) => {
+      if (settled) return;
+      settled = true;
+      resolve(value);
+    };
+
+    // A poster is a nicety; 3 s is already longer than it should ever take.
+    const timer = setTimeout(() => finish(null), 3000);
+
+    el.onseeked = () => {
+      clearTimeout(timer);
+      try {
+        const w = 320;
+        const h = Math.max(
+          1,
+          Math.round((el.videoHeight / (el.videoWidth || 1)) * w)
+        );
+        const canvas = document.createElement('canvas');
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return finish(null);
+        ctx.drawImage(el, 0, 0, w, h);
+        finish(canvas.toDataURL('image/jpeg', 0.7));
+      } catch {
+        // Tainted canvas or an unseekable container — not worth surfacing.
+        finish(null);
+      }
+    };
+
+    try {
+      // 1 s in, so we skip the black frame most encoders start with.
+      el.currentTime = Math.min(1, (el.duration || 2) / 2);
+    } catch {
+      clearTimeout(timer);
+      finish(null);
+    }
+  });
 }
 
 export function probeVideoMeta(file: File): Promise<VideoMeta> {
   return new Promise((resolve) => {
-    const empty: VideoMeta = { durationSeconds: null, width: null, height: null };
+    const empty: VideoMeta = {
+      durationSeconds: null,
+      width: null,
+      height: null,
+      poster: null,
+    };
 
     if (typeof window === 'undefined' || !file.type.startsWith('video')) {
       resolve(empty);
@@ -62,15 +113,19 @@ export function probeVideoMeta(file: File): Promise<VideoMeta> {
 
     const timer = setTimeout(() => done(empty), 8000);
 
-    el.preload = 'metadata';
+    // `metadata` is enough for duration/dimensions but not for drawImage, so
+    // we ask for actual data — the object URL is local, nothing is downloaded.
+    el.preload = 'auto';
     el.muted = true;
+    el.playsInline = true;
     el.onloadedmetadata = () => {
       clearTimeout(timer);
-      done({
+      const base = {
         durationSeconds: Number.isFinite(el.duration) ? el.duration : null,
         width: el.videoWidth || null,
         height: el.videoHeight || null,
-      });
+      };
+      grabPoster(el).then((poster) => done({ ...base, poster }));
     };
     el.onerror = () => {
       clearTimeout(timer);

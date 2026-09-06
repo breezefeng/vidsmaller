@@ -13,6 +13,8 @@
   },
   "settings": {
     "title": "压缩设置",
+    "howSmall": "要压到多小？",
+    "advanced": "高级选项",
     "modes": {
       "preset": "预设",
       "target_size": "目标体积",
@@ -23,20 +25,39 @@
     "presets": {
       "light": {
         "title": "轻度",
+        "ratio": "约原片 70%",
         "hint": "约为原片 70% · 接近无损"
       },
       "balanced": {
         "title": "均衡",
+        "ratio": "约原片 50%",
         "hint": "约为原片 50% · 推荐"
       },
       "strong": {
         "title": "强力",
+        "ratio": "约原片 30%",
         "hint": "约为原片 30% · 适合分享"
       },
       "extreme": {
         "title": "极限",
+        "ratio": "约原片 15%",
         "hint": "约为原片 15% · 体积最小"
       }
+    },
+    "exact": {
+      "title": "指定体积",
+      "hint": "自己填 MB"
+    },
+    "platforms": {
+      "discord": "Discord",
+      "whatsapp": "WhatsApp",
+      "email": "邮件",
+      "reddit": "Reddit"
+    },
+    "fine": {
+      "label": "精细控制",
+      "off": "关闭 · 用上面选的",
+      "hint": "用单个编码参数覆盖上面的预设。"
     },
     "targetSize": {
       "label": "目标文件体积（MB）",
@@ -77,8 +98,15 @@
   },
   "queue": {
     "compressNow": "开始压缩",
+    "compressCount": "压缩 {count} 个视频",
     "working": "处理中…",
-    "clear": "清空",
+    "clear": "全部清空",
+    "addAnother": "再加一个视频",
+    "cancel": "取消",
+    "willBe": "预计结果：<hl>{size}</hl>",
+    "willProduce": "约 <hl>{size}</hl> · −{percent}%",
+    "costCredits": "{count, plural, =0 {免费} other {# 积分}}",
+    "costFree": "免费 · 无需注册",
     "saved": "已省下 <hl>{amount}</hl>",
     "remove": "移除",
     "download": "下载",
@@ -91,7 +119,7 @@
       "processing": "压缩中",
       "done": "完成",
       "error": "失败",
-      "canceled": "已取消"
+      "canceled": "已取消 · 点开始压缩可重来"
     },
     "progress": {
       "creating": "正在创建任务…",
@@ -99,9 +127,16 @@
       "processing": "服务器压缩中… {percent}%"
     }
   },
+  "result": {
+    "title": "{count, plural, one {视频压好了} other {# 个视频都压好了}}",
+    "saved": "省下 {amount} · 小了 {percent}%",
+    "another": "再压一个",
+    "retention": "下载链接会保留 {hours} 小时。"
+  },
   "errors": {
     "batchLimit": "当前套餐一次最多只能排 {count} 个文件。",
     "fileTooLarge": "「{name}」超出了你当前套餐的体积上限。",
+    "notEnoughCredits": "这批需要 {need} 积分，你只有 {have}。去掉一个文件或者充值。",
     "noUploadTarget": "上传没能开始，请重试。",
     "lostConnection": "与服务器的连接中断",
     "timedOut": "处理超时",

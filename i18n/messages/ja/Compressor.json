@@ -13,6 +13,8 @@
   },
   "settings": {
     "title": "圧縮設定",
+    "howSmall": "どこまで小さく？",
+    "advanced": "詳細オプション",
     "modes": {
       "preset": "プリセット",
       "target_size": "目標サイズ",
@@ -23,20 +25,39 @@
     "presets": {
       "light": {
         "title": "軽め",
+        "ratio": "元の約 70%",
         "hint": "元の約 70% · ほぼロスレス"
       },
       "balanced": {
         "title": "バランス",
+        "ratio": "元の約 50%",
         "hint": "元の約 50% · おすすめ"
       },
       "strong": {
         "title": "強め",
+        "ratio": "元の約 30%",
         "hint": "元の約 30% · 共有に最適"
       },
       "extreme": {
         "title": "最大",
+        "ratio": "元の約 15%",
         "hint": "元の約 15% · 最小サイズ"
       }
+    },
+    "exact": {
+      "title": "サイズ指定",
+      "hint": "MB で指定"
+    },
+    "platforms": {
+      "discord": "Discord",
+      "whatsapp": "WhatsApp",
+      "email": "メール",
+      "reddit": "Reddit"
+    },
+    "fine": {
+      "label": "詳細な指定",
+      "off": "オフ · 上の選択を使う",
+      "hint": "エンコーダのパラメータ 1 つでプリセットを上書きします。"
     },
     "targetSize": {
       "label": "目標ファイルサイズ（MB）",
@@ -77,8 +98,15 @@
   },
   "queue": {
     "compressNow": "圧縮する",
+    "compressCount": "{count} 本を圧縮",
     "working": "処理中…",
-    "clear": "クリア",
+    "clear": "すべてクリア",
+    "addAnother": "動画を追加",
+    "cancel": "キャンセル",
+    "willBe": "予想サイズ：<hl>{size}</hl>",
+    "willProduce": "約 <hl>{size}</hl> · −{percent}%",
+    "costCredits": "{count, plural, =0 {無料} other {# クレジット}}",
+    "costFree": "無料 · 登録不要",
     "saved": "削減 <hl>{amount}</hl>",
     "remove": "削除",
     "download": "ダウンロード",
@@ -91,7 +119,7 @@
       "processing": "圧縮中",
       "done": "完了",
       "error": "失敗",
-      "canceled": "キャンセル済み"
+      "canceled": "キャンセル済み · もう一度圧縮できます"
     },
     "progress": {
       "creating": "ジョブを作成中…",
@@ -99,9 +127,16 @@
       "processing": "サーバーで圧縮中… {percent}%"
     }
   },
+  "result": {
+    "title": "{count, plural, one {動画の準備ができました} other {# 本の動画が完成しました}}",
+    "saved": "{amount} 削減 · {percent}% 小さく",
+    "another": "次の動画を圧縮",
+    "retention": "ダウンロードリンクは {hours} 時間有効です。"
+  },
   "errors": {
     "batchLimit": "現在のプランでは一度に {count} 個までしか登録できません。",
     "fileTooLarge": "「{name}」はご利用中のプランのサイズ上限を超えています。",
+    "notEnoughCredits": "このバッチには {need} クレジット必要ですが、残高は {have} です。ファイルを減らすかチャージしてください。",
     "noUploadTarget": "アップロードを開始できませんでした。もう一度お試しください。",
     "lostConnection": "サーバーとの接続が切断されました",
     "timedOut": "タイムアウトしました",

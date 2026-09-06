@@ -39,6 +39,9 @@ export interface CompressItem {
   durationSeconds: number | null;
   width: number | null;
   height: number | null;
+  poster: string | null;
+  /** wall clock of the moment the job started, for the elapsed counter */
+  startedAt: number | null;
 
   phase: ItemPhase;
   uploadPercent: number;
@@ -125,6 +128,8 @@ export function useCompressor() {
         durationSeconds: null,
         width: null,
         height: null,
+        poster: null,
+        startedAt: null,
         phase: 'ready',
         uploadPercent: 0,
         processPercent: 0,
@@ -167,6 +172,23 @@ export function useCompressor() {
     setItems([]);
     setGlobalError(null);
   }, []);
+
+  /**
+   * Stop a running item but keep it in the queue so the user can adjust the
+   * settings and press compress again. Previously the only way out of a
+   * running job was to remove the file and re-pick it.
+   */
+  const cancelItem = useCallback(
+    (key: string) => {
+      abortControllers.current.get(key)?.abort();
+      abortControllers.current.delete(key);
+      const timer = pollTimers.current.get(key);
+      if (timer) clearTimeout(timer);
+      pollTimers.current.delete(key);
+      patch(key, { phase: 'canceled', uploadPercent: 0, processPercent: 0 });
+    },
+    [patch]
+  );
 
   /* ------------------------------ polling ------------------------------ */
 
@@ -251,6 +273,7 @@ export function useCompressor() {
         error: null,
         uploadPercent: 0,
         processPercent: 0,
+        startedAt: Date.now(),
       });
 
       const onUploadProgress = (percent: number) =>
@@ -371,15 +394,23 @@ export function useCompressor() {
     const done = items.filter((i) => i.phase === 'done');
     const totalIn = done.reduce((s, i) => s + i.size, 0);
     const totalOut = done.reduce((s, i) => s + (i.outputSize ?? i.size), 0);
+    const pending = items.filter((i) =>
+      ['ready', 'error', 'canceled'].includes(i.phase)
+    );
     return {
       total: items.length,
       done: done.length,
       busy: items.some((i) =>
         ['creating', 'uploading', 'processing'].includes(i.phase)
       ),
-      hasPending: items.some((i) =>
-        ['ready', 'error', 'canceled'].includes(i.phase)
-      ),
+      hasPending: pending.length > 0,
+      pendingCount: pending.length,
+      pendingBytes: pending.reduce((s, i) => s + i.size, 0),
+      /** every item finished, at least one succeeded — time to show results */
+      allSettled:
+        items.length > 0 &&
+        items.every((i) => ['done', 'error'].includes(i.phase)),
+      queuedBytes: items.reduce((s, i) => s + i.size, 0),
       totalIn,
       totalOut,
       savedBytes: Math.max(totalIn - totalOut, 0),
@@ -389,6 +420,13 @@ export function useCompressor() {
           : 0,
     };
   }, [items]);
+
+  /** Items the compress button would actually act on. */
+  const pendingItems = useMemo(
+    () =>
+      items.filter((i) => ['ready', 'error', 'canceled'].includes(i.phase)),
+    [items]
+  );
 
   return {
     items,
@@ -400,9 +438,11 @@ export function useCompressor() {
     addFiles,
     removeItem,
     clearAll,
+    cancelItem,
     startAll,
     retryItem,
     stats,
+    pendingItems,
     refreshContext,
   };
 }
