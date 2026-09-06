@@ -217,12 +217,17 @@ the eight events `app/api/stripe/webhook/route.ts` actually handles.
 `PLAN_TIER_MAP` maps plan uuids to compressor tiers and is already set for both
 the `test` and `live` rows.
 
-### 6. Email — needs DNS
+### 6. Email — sending done, receiving not
 
-`RESEND_API_KEY` is set and `vidsmaller.com` is registered with Resend, but the
-domain is **unverified** until these three records exist. Until then no
-magic-link or OTP mail can be delivered, and `ADMIN_EMAIL`
-(`noreply@vidsmaller.com`) cannot send.
+> Corrected 2026-09-06. This section said the three Resend records were missing
+> and that no mail could be delivered. They are published and the domain is
+> verified — confirmed by `dig` and by `GET api.resend.com/domains`
+> (`status: verified`, `sending: enabled`). Don't trust a TODO you haven't
+> re-measured.
+
+**Outbound works.** `vidsmaller.com` is verified with Resend, so magic links,
+OTP codes and `ADMIN_EMAIL` (`noreply@vidsmaller.com`) all send. The three
+records now live on the zone:
 
 | Type | Name | Value | Priority |
 | --- | --- | --- | --- |
@@ -230,7 +235,31 @@ magic-link or OTP mail can be delivered, and `ADMIN_EMAIL`
 | MX | `send` | `feedback-smtp.us-east-1.amazonses.com` | 10 |
 | TXT | `send` | `v=spf1 include:amazonses.com ~all` | — |
 
-Then hit Verify in the Resend dashboard.
+**Inbound does not.** The root domain has no MX record, so
+`support@vidsmaller.com` — printed on the About page and all three legal pages —
+bounces. Resend's own `receiving` capability is `disabled`, and its inbound
+product delivers to a webhook, which would mean writing a forwarding service for
+a support mailbox. Cloudflare Email Routing is free and forwards to an inbox you
+already read:
+
+```bash
+node scripts/setup-email-routing.mjs --to=you@example.com          # dry run
+node scripts/setup-email-routing.mjs --to=you@example.com --apply
+node scripts/setup-email-routing.mjs --status
+```
+
+Needs a `CLOUDFLARE_API_TOKEN` with Zone:Read, Zone Settings:Edit, Email Routing
+Rules:Edit and Account → Email Routing Addresses:Edit. The script refuses to run
+if the root already has a non-Cloudflare MX, so it cannot silently hijack an
+existing mailbox. One step it cannot do for you: Cloudflare emails the
+destination a verification link, and forwarding stays dead until a human clicks
+it.
+
+Root MX and Resend's `send.` MX do not conflict — different names.
+
+To reply *as* support@vidsmaller.com afterwards, add it in Gmail under "Send mail
+as" with SMTP host `smtp.resend.com`, port 587, username `resend`, password =
+`RESEND_API_KEY`.
 
 ### 7. Rate limiting — done
 
@@ -436,7 +465,10 @@ Re-verified 2026-09-06 after the switch to R2 staging, **from a real browser**
 ## TODO before launch
 
 - [ ] Upgrade the FreeConvert plan (20 free minutes will run out fast)
-- [ ] Publish the three Resend DNS records so email can actually send
+- [x] Publish the three Resend DNS records so email can actually send
+- [ ] Point `support@vidsmaller.com` at a real inbox
+      (`scripts/setup-email-routing.mjs`) — it is on four public pages and
+      currently bounces
 - [ ] Test a real checkout once before announcing anything
 - [ ] Upgrade FreeConvert — this is now the only thing gating real traffic
 - [ ] Replace `public/logo.png` / favicon with real branding
