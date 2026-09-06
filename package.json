@@ -23,6 +23,7 @@
     "db:export-pricing": "tsx lib/db/seed/export.ts",
     "test:freeconvert": "node scripts/test-freeconvert.mjs",
     "check:benchmark": "node scripts/check-benchmark-sync.mjs",
+    "check:crf": "node scripts/sync-crf-data.mjs --check",
     "check:i18n": "node scripts/check-i18n-parity.mjs",
     "seo:images": "node scripts/seo-images.mjs",
     "seo:images:plan": "node scripts/seo-images.mjs --dry-run",
