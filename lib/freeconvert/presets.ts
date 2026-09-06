@@ -191,6 +191,19 @@ export interface BuildJobInput {
   tag?: string;
   /** when provided the job imports from a URL instead of a browser upload */
   importUrl?: string;
+  /**
+   * When provided, the provider writes the result straight into our own
+   * S3-compatible bucket instead of serving it from the box that ran the job.
+   * See lib/compress/staging.ts for why that matters.
+   */
+  output?: {
+    bucket: string;
+    region: string;
+    endpoint: string;
+    accessKeyId: string;
+    secretAccessKey: string;
+    key: string;
+  };
 }
 
 export function buildCompressJob(input: BuildJobInput): FCJobDefinition {
@@ -213,11 +226,26 @@ export function buildCompressJob(input: BuildJobInput): FCJobDefinition {
         output_format: input.settings.outputFormat,
         options: buildCompressOptions(input.settings),
       },
-      [TASK_EXPORT]: {
-        operation: 'export/url',
-        input: TASK_COMPRESS,
-        filename: input.outputFilename,
-      },
+      [TASK_EXPORT]: input.output
+        ? ({
+            operation: 'export/s3',
+            input: TASK_COMPRESS,
+            bucket: input.output.bucket,
+            region: input.output.region,
+            endpoint: input.output.endpoint,
+            access_key_id: input.output.accessKeyId,
+            secret_access_key: input.output.secretAccessKey,
+            key: input.output.key,
+            // Required by the provider, and only accepts the bare token — a
+            // full header string is rejected. The real filename is attached
+            // when we sign the download URL.
+            content_disposition: 'attachment',
+          } as FCJobDefinition['tasks'][string])
+        : {
+            operation: 'export/url',
+            input: TASK_COMPRESS,
+            filename: input.outputFilename,
+          },
     },
   };
 }

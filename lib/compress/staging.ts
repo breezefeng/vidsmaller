@@ -25,6 +25,7 @@ import { randomUUID } from 'crypto';
  */
 
 export const STAGING_PREFIX = 'compress-input';
+export const OUTPUT_PREFIX = 'compress-output';
 
 export function isStagingEnabled(): boolean {
   return Boolean(
@@ -114,4 +115,68 @@ export async function deleteStagedObject(key: string): Promise<void> {
   } catch (err) {
     console.error('[compress] failed to delete staged object', key, err);
   }
+}
+
+
+/* ------------------------------------------------------------------ */
+/* Output side                                                         */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Where the provider writes the finished file.
+ *
+ * The provider's own `export/url` hands back a URL on the single box that ran
+ * the job — `serverNN-*.freeconvert.com`, plain nginx, no CDN anywhere in
+ * front of it. Measured throughput fell off a cliff with distance: ~28 MB/s
+ * from a runner in the same city as that box, ~2.5 MB/s from Wyoming, and
+ * ~0.5 MB/s from China. A user reported 170 KB/s on a 178 MB file, which is a
+ * seventeen-minute download of a file we had already finished making.
+ *
+ * `export/s3` accepts a custom endpoint, and R2 is S3-compatible, so the
+ * provider can write straight into our bucket server-to-server. Nothing
+ * transits our own functions, so there is no execution limit and no bandwidth
+ * bill for the relay we would otherwise have had to build.
+ */
+export function buildOutputKey(filename: string): string {
+  const ext = filename.includes('.')
+    ? filename.slice(filename.lastIndexOf('.') + 1).toLowerCase()
+    : 'bin';
+  const day = new Date().toISOString().slice(0, 10);
+  return `${OUTPUT_PREFIX}/${day}/${randomUUID()}.${ext.replace(/[^a-z0-9]/g, '')}`;
+}
+
+/**
+ * A short-lived signed URL for the finished file.
+ *
+ * Deliberately NOT the public `cdn.vidsmaller.com` domain. That domain is
+ * cached at the edge with `max-age=14400`, so an object deleted from R2 stays
+ * retrievable for another four hours — and we tell users that anonymous
+ * results expire after two. The promise would have been false at the edge
+ * while looking true in the bucket.
+ *
+ * The signed endpoint is still Cloudflare's network, so the reason we moved
+ * off the provider's origin survives: measured against a cold (uncached)
+ * request on the public domain, signed URLs came out the same within noise.
+ * We only give up a cache hit that real users never get anyway, because each
+ * output is downloaded once.
+ */
+export async function createOutputDownloadUrl(input: {
+  key: string;
+  filename: string;
+  expiresIn?: number;
+}): Promise<string> {
+  const client = createR2Client();
+  return getSignedUrl(
+    client,
+    new GetObjectCommand({
+      Bucket: bucket(),
+      Key: input.key,
+      ResponseContentDisposition: `attachment; filename*=UTF-8''${encodeURIComponent(input.filename)}`,
+    }),
+    { expiresIn: input.expiresIn ?? 60 * 60 }
+  );
+}
+
+export async function deleteOutputObject(key: string): Promise<void> {
+  return deleteStagedObject(key);
 }

@@ -6,7 +6,7 @@ import {
   settleFreeBudget,
 } from '@/lib/compress/budget';
 import { refundCredits } from '@/lib/compress/credits';
-import { deleteStagedObject } from '@/lib/compress/staging';
+import { deleteOutputObject, deleteStagedObject } from '@/lib/compress/staging';
 import { db } from '@/lib/db';
 import {
   compressionJobs as jobsSchema,
@@ -185,7 +185,13 @@ export async function syncJob(job: CompressionJob): Promise<CompressionJob> {
   }
 
   if (status === 'completed') {
-    patch.downloadUrl = exportTask?.result?.url ?? null;
+    // export/s3 returns no URL — the file is in our bucket and the download
+    // route signs a short-lived URL for it on demand. Older jobs, and any run
+    // where R2 was not configured, still carry the provider's own URL.
+    const outputKey = (job.settings as { outputKey?: string | null })?.outputKey;
+    patch.downloadUrl = outputKey
+      ? `r2:${outputKey}`
+      : (exportTask?.result?.url ?? null);
     patch.completedAt = new Date();
 
     const retentionHours = job.userId
@@ -248,6 +254,12 @@ export async function syncJob(job: CompressionJob): Promise<CompressionJob> {
       ?.stagingKey;
     if (stagingKey) {
       void deleteStagedObject(stagingKey);
+    }
+    // A failed job may still have written a partial object.
+    if (status === 'failed') {
+      const outputKey = (job.settings as { outputKey?: string | null })
+        ?.outputKey;
+      if (outputKey) void deleteOutputObject(outputKey);
     }
   }
 

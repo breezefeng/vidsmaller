@@ -24,6 +24,7 @@ import {
 } from '@/lib/compress/quota';
 import { toJobView } from '@/lib/compress/service';
 import {
+  buildOutputKey,
   createStagingDownloadUrl,
   isStagingEnabled,
 } from '@/lib/compress/staging';
@@ -216,6 +217,20 @@ export async function POST(req: Request) {
     importUrl = await createStagingDownloadUrl({ key: stagingKey });
   }
 
+  // Send the result to our own bucket when R2 is configured. Without it the
+  // provider serves from a single un-CDN'd origin box; see staging.ts.
+  const outputKey = isStagingEnabled() ? buildOutputKey(outputFilename) : null;
+  const output = outputKey
+    ? {
+        bucket: process.env.R2_BUCKET_NAME!,
+        region: 'auto',
+        endpoint: `https://${process.env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
+        accessKeyId: process.env.R2_ACCESS_KEY_ID!,
+        secretAccessKey: process.env.R2_SECRET_ACCESS_KEY!,
+        key: outputKey,
+      }
+    : undefined;
+
   let providerJob;
   try {
     providerJob = await createJob(
@@ -225,6 +240,7 @@ export async function POST(req: Request) {
         settings,
         tag: `vidsmaller:${tier}`,
         importUrl,
+        output,
       })
     );
   } catch (err) {
@@ -315,6 +331,7 @@ export async function POST(req: Request) {
       settings: {
         ...settings,
         stagingKey: stagingKey ?? null,
+        outputKey,
         estimatedProviderMinutes: Math.round(providerMinutes * 1000) / 1000,
         // Only set when the pool was actually charged, and which bucket it
         // hit — a job created at 23:59 must settle against yesterday.
