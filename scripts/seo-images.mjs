@@ -36,6 +36,25 @@ const COST = {
   '1024x1536': { low: 0.005, medium: 0.041, high: 0.165 },
 };
 
+/** Reference for interpolating sizes the table does not list. */
+const COST_REF = { pixels: 1536 * 1024, ...COST['1536x1024'] };
+
+/**
+ * Estimated USD for one image.
+ *
+ * Sizes outside the published table are interpolated by pixel count and
+ * flagged, because the first version of this returned 0 for anything it did
+ * not recognise — so switching the covers to 16:9 made the whole run look
+ * free. A cost estimate that silently reports zero is worse than none.
+ */
+function costOf(size, quality) {
+  const known = COST[size]?.[quality];
+  if (known != null) return { usd: known, exact: true };
+  const [w, h] = size.split('x').map(Number);
+  if (!w || !h) return { usd: 0, exact: false };
+  return { usd: (COST_REF[quality] ?? 0) * ((w * h) / COST_REF.pixels), exact: false };
+}
+
 // ---------------------------------------------------------------- env
 
 function loadEnv() {
@@ -181,7 +200,8 @@ async function main() {
     const hash = specHash(style, s, d);
     const cached = lock.images[s.id];
     const skip = !FORCE && cached?.hash === hash;
-    return { spec: s, size, quality, hash, skip, cost: COST[size]?.[quality] ?? 0 };
+    const { usd, exact } = costOf(size, quality);
+    return { spec: s, size, quality, hash, skip, cost: usd, exactCost: exact };
   });
 
   const todo = plan.filter((p) => !p.skip);
@@ -190,7 +210,12 @@ async function main() {
   console.log(`\n  manifest : ${specs.length} 张`);
   console.log(`  已缓存   : ${plan.length - todo.length} 张（跳过）`);
   console.log(`  待生成   : ${todo.length} 张`);
-  console.log(`  成本估算 : ~$${est.toFixed(3)}  (${manifest.model})\n`);
+  const interpolated = todo.some((p) => !p.exactCost);
+  console.log(
+    `  成本估算 : ~$${est.toFixed(3)}  (${manifest.model})` +
+      (interpolated ? '  ← 含按像素插值的尺寸，以账单为准' : '') +
+      '\n'
+  );
 
   for (const p of plan) {
     console.log(

@@ -200,9 +200,15 @@ export function PostList({
             </div>
           )}
 
-          {!hasMore && posts.length >= 0 && (
+          {/* `posts` is only the server-backed list. Local MDX files render
+              from `localPosts` just above, so counting `posts` alone printed
+              "No posts found for this tag." underneath a grid of visible
+              posts whenever the content lives in the repo rather than the DB. */}
+          {!hasMore && (
             <p className="text-center text-gray-500 py-8 text-sm">
-              {posts.length === 0 ? emptyMessage : "You've reached the end."}
+              {posts.length === 0 && localPosts.length === 0
+                ? emptyMessage
+                : "You've reached the end."}
             </p>
           )}
         </>

@@ -1,0 +1,34 @@
+{
+  "images": {
+    "post-crf-explained": {
+      "hash": "cf9433080c649d81",
+      "url": "https://cdn.vidsmaller.com/seo/blog/crf-explained-cover-cf9433080c649d81.webp",
+      "alt": "Illustration of a quality slider, with a shape becoming progressively blockier as the value rises",
+      "width": 1536,
+      "height": 864,
+      "bytes": 703820,
+      "group": "blog",
+      "usedBy": [
+        "blog/crf-explained-what-number-to-use"
+      ],
+      "model": "gpt-image-2",
+      "quality": "medium",
+      "generatedAt": "2026-09-06T12:35:24.884Z"
+    },
+    "post-without-losing-quality": {
+      "hash": "ef52679e2789803e",
+      "url": "https://cdn.vidsmaller.com/seo/blog/compress-without-losing-quality-cover-ef52679e2789803e.webp",
+      "alt": "Illustration of a large video file folded down into a much smaller one while keeping its quality",
+      "width": 1536,
+      "height": 864,
+      "bytes": 757474,
+      "group": "blog",
+      "usedBy": [
+        "blog/how-to-compress-a-video-without-losing-quality"
+      ],
+      "model": "gpt-image-2",
+      "quality": "medium",
+      "generatedAt": "2026-09-06T12:35:56.233Z"
+    }
+  }
+}
