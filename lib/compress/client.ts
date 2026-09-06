@@ -391,6 +391,21 @@ export interface JobView {
     | 'failed'
     | 'expired';
   progress: number;
+  /**
+   * Stage + clock, so the bar can keep moving between polls. See
+   * lib/compress/progress.ts: the provider reports no percentage of its own.
+   */
+  stage:
+    | 'queued'
+    | 'importing'
+    | 'compressing'
+    | 'exporting'
+    | 'completed'
+    | 'failed'
+    | null;
+  stageElapsedSeconds: number | null;
+  stageEstimateSeconds: number | null;
+  etaSeconds: number | null;
   originalFilename: string;
   outputFilename: string;
   inputSize: number;
@@ -427,6 +442,8 @@ export function createJobRequest(payload: {
   filename: string;
   fileSize: number;
   durationSeconds: number | null;
+  sourceWidth?: number | null;
+  sourceHeight?: number | null;
   settings: CompressSettings;
   stagingKey?: string;
 }) {

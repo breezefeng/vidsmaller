@@ -46,6 +46,16 @@ export interface CompressItem {
   phase: ItemPhase;
   uploadPercent: number;
   processPercent: number;
+  /**
+   * Where the provider is and when that stage started, so the bar can be
+   * animated locally instead of stepping once per poll. The provider exposes
+   * no percentage of its own — see lib/compress/progress.ts.
+   */
+  stage: JobView['stage'];
+  stageElapsedSeconds: number | null;
+  stageEstimateSeconds: number | null;
+  /** Local clock reading of when the two numbers above were received. */
+  stageSyncedAt: number | null;
 
   jobId: string | null;
   outputSize: number | null;
@@ -139,6 +149,10 @@ export function useCompressor(initialSettings?: CompressSettings) {
         phase: 'ready',
         uploadPercent: 0,
         processPercent: 0,
+        stage: null,
+        stageElapsedSeconds: null,
+        stageEstimateSeconds: null,
+        stageSyncedAt: null,
         jobId: null,
         outputSize: null,
         savedPercent: null,
@@ -210,6 +224,10 @@ export function useCompressor(initialSettings?: CompressSettings) {
       patch(key, {
         phase,
         processPercent: job.progress,
+        stage: job.stage,
+        stageElapsedSeconds: job.stageElapsedSeconds,
+        stageEstimateSeconds: job.stageEstimateSeconds,
+        stageSyncedAt: Date.now(),
         outputSize: job.outputSize,
         savedPercent: job.savedPercent,
         downloadUrl: job.downloadUrl,
@@ -279,6 +297,10 @@ export function useCompressor(initialSettings?: CompressSettings) {
         error: null,
         uploadPercent: 0,
         processPercent: 0,
+        stage: null,
+        stageElapsedSeconds: null,
+        stageEstimateSeconds: null,
+        stageSyncedAt: null,
         startedAt: Date.now(),
       });
 
@@ -324,6 +346,8 @@ export function useCompressor(initialSettings?: CompressSettings) {
             filename: item.name,
             fileSize: item.size,
             durationSeconds: item.durationSeconds,
+            sourceWidth: item.width,
+            sourceHeight: item.height,
             settings,
             stagingKey: staging.key,
           });
@@ -334,6 +358,8 @@ export function useCompressor(initialSettings?: CompressSettings) {
             filename: item.name,
             fileSize: item.size,
             durationSeconds: item.durationSeconds,
+            sourceWidth: item.width,
+            sourceHeight: item.height,
             settings,
           });
 

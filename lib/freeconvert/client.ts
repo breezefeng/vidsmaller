@@ -144,29 +144,6 @@ export function getUploadForm(job: FCJob, taskName: string): FCUploadForm {
   return form;
 }
 
-/**
- * Collapse the per-task statuses into a single coarse progress number
- * so the UI can show something meaningful while polling.
- */
-export function computeJobProgress(job: FCJob): number {
-  const tasks = job.tasks || [];
-  if (!tasks.length) return 0;
-
-  const weight = (t: FCTask) => {
-    if (t.status === 'completed') return 1;
-    if (t.status === 'failed') return 1;
-    if (t.status === 'processing') {
-      return typeof t.percent === 'number'
-        ? Math.min(Math.max(t.percent, 0), 100) / 100
-        : 0.5;
-    }
-    return 0;
-  };
-
-  const done = tasks.reduce((sum, t) => sum + weight(t), 0);
-  return Math.round((done / tasks.length) * 100);
-}
-
 export function collectJobError(job: FCJob): string | undefined {
   if (job.result?.msg) return String(job.result.msg).trim();
   const failed = job.tasks?.find((t) => t.status === 'failed');

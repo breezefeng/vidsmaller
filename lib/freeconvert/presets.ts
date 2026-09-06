@@ -66,10 +66,13 @@ export const compressSettingsSchema = z
 
     codec: z.enum(CODECS).default('libx264'),
 
-    /** trade encode time for compression */
+    /**
+     * x264 preset. Trades encode wall clock against quality at a fixed target
+     * size — not against file size, which is set by the target.
+     */
     speed: z
       .enum(['veryfast', 'faster', 'fast', 'medium', 'slow'])
-      .default('medium'),
+      .default('faster'),
 
     outputFormat: z.enum(['mp4', 'mkv', 'webm', 'mov']).default('mp4'),
 
@@ -97,11 +100,32 @@ export const compressSettingsSchema = z
 
 export type CompressSettings = z.infer<typeof compressSettingsSchema>;
 
+/**
+ * Why `faster` and not `medium`.
+ *
+ * The same 8.5-minute 720p file, three times through the provider at the same
+ * 50% target (scripts/fc-speed-preset-results.jsonl):
+ *
+ *   medium  61.7s   25,703,118 B
+ *   fast    43.2s   25,702,451 B   (0.70x the time)
+ *   faster  27.3s   25,701,649 B   (0.44x the time)
+ *
+ * The output sizes differ by 0.006%: at a percentage target the preset buys
+ * wall clock, not bytes. What it costs is quality, and that is small — VMAF
+ * measured locally at a fixed bitrate: medium 96.06, fast 96.05, faster 95.96.
+ * A tenth of a VMAF point is far below the threshold anyone can see, while
+ * halving the wait on a feature-length file is the difference between a
+ * progress bar people wait out and one they abandon. The provider also bills
+ * by wall clock, so the same change halves what a job costs us.
+ *
+ * `medium` and `slow` stay available in Advanced for anyone who wants the last
+ * fraction of a point.
+ */
 export const DEFAULT_SETTINGS: CompressSettings = {
   mode: 'preset',
   preset: 'balanced',
   codec: 'libx264',
-  speed: 'medium',
+  speed: 'faster',
   outputFormat: 'mp4',
   oldDeviceCompatible: false,
 };

@@ -86,10 +86,10 @@
     "speed": {
       "label": "编码速度",
       "veryfast": "极快",
-      "faster": "较快",
+      "faster": "较快 · 默认",
       "fast": "快",
-      "medium": "中等 · 均衡",
-      "slow": "慢 · 压缩率最高"
+      "medium": "中等 · 画质略好",
+      "slow": "慢 · 画质最好，耗时约 4 倍"
     },
     "oldDevice": {
       "label": "老设备兼容模式",
@@ -124,7 +124,14 @@
     "progress": {
       "creating": "正在创建任务…",
       "uploading": "上传中 {percent}%",
-      "processing": "服务器压缩中… {percent}%"
+      "queued": "服务器排队中… {percent}%",
+      "importing": "正在把文件交给编码器… {percent}%",
+      "processing": "服务器压缩中… {percent}%",
+      "exporting": "正在保存结果… {percent}%",
+      "eta": "约剩 {time}",
+      "etaSeconds": "{count} 秒",
+      "etaMinutes": "{count} 分钟",
+      "finishing": "即将完成"
     }
   },
   "result": {

@@ -86,10 +86,10 @@
     "speed": {
       "label": "Encoder speed",
       "veryfast": "Very fast",
-      "faster": "Faster",
+      "faster": "Faster · default",
       "fast": "Fast",
-      "medium": "Medium · balanced",
-      "slow": "Slow · best ratio"
+      "medium": "Medium · a touch cleaner",
+      "slow": "Slow · cleanest, ~4x the wait"
     },
     "oldDevice": {
       "label": "Old-device compatibility",
@@ -124,7 +124,14 @@
     "progress": {
       "creating": "Creating job…",
       "uploading": "Uploading {percent}%",
-      "processing": "Compressing on the server… {percent}%"
+      "queued": "Queued on the server… {percent}%",
+      "importing": "Handing the file to the encoder… {percent}%",
+      "processing": "Compressing on the server… {percent}%",
+      "exporting": "Saving the result… {percent}%",
+      "eta": "about {time} left",
+      "etaSeconds": "{count}s",
+      "etaMinutes": "{count} min",
+      "finishing": "finishing up"
     }
   },
   "result": {

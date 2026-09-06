@@ -86,10 +86,10 @@
     "speed": {
       "label": "エンコード速度",
       "veryfast": "非常に速い",
-      "faster": "やや速い",
+      "faster": "やや速い · 既定",
       "fast": "速い",
-      "medium": "標準 · バランス",
-      "slow": "遅い · 圧縮率優先"
+      "medium": "標準 · 少しきれい",
+      "slow": "遅い · 最もきれい、約4倍の時間"
     },
     "oldDevice": {
       "label": "旧端末互換モード",
@@ -124,7 +124,14 @@
     "progress": {
       "creating": "ジョブを作成中…",
       "uploading": "アップロード中 {percent}%",
-      "processing": "サーバーで圧縮中… {percent}%"
+      "queued": "サーバーで順番待ち… {percent}%",
+      "importing": "エンコーダーにファイルを渡しています… {percent}%",
+      "processing": "サーバーで圧縮中… {percent}%",
+      "exporting": "結果を保存中… {percent}%",
+      "eta": "残り約 {time}",
+      "etaSeconds": "{count} 秒",
+      "etaMinutes": "{count} 分",
+      "finishing": "まもなく完了"
     }
   },
   "result": {
