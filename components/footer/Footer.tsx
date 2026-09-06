@@ -18,7 +18,24 @@ export default async function Footer() {
 
   const tTools = await getTranslations("Tools");
 
-  const footerLinks: FooterLink[] = tFooter.raw("Links.groups");
+  // `raw()` hands back a live reference into next-intl's cached message store,
+  // not a copy. Mutating it leaks across every render that shares the cache —
+  // an earlier version of this file spliced the tools group straight into the
+  // result and the footer grew another "Compress for" column on every request.
+  //
+  // The pre-existing `pricingLink.href = ...` below mutates the same shared
+  // object; it survived unnoticed only because assigning the same value twice
+  // is idempotent. Both are fixed by copying first.
+  const pricingPath = process.env.NEXT_PUBLIC_PRICING_PATH || "/pricing";
+
+  const translatedGroups: FooterLink[] = (
+    tFooter.raw("Links.groups") as FooterLink[]
+  ).map((group) => ({
+    ...group,
+    links: group.links.map((link) =>
+      link.id === "pricing" ? { ...link, href: pricingPath } : { ...link }
+    ),
+  }));
 
   // Generated from config/platforms.ts rather than duplicated into the
   // translation files, so adding a platform page adds its footer link
@@ -33,14 +50,12 @@ export default async function Footer() {
       name: tTools(`platforms.${p.key}.name`),
     })),
   };
-  footerLinks.splice(1, 0, toolsGroup);
 
-  footerLinks.forEach((group) => {
-    const pricingLink = group.links.find((link) => link.id === "pricing");
-    if (pricingLink) {
-      pricingLink.href = process.env.NEXT_PUBLIC_PRICING_PATH!;
-    }
-  });
+  const footerLinks: FooterLink[] = [
+    translatedGroups[0],
+    toolsGroup,
+    ...translatedGroups.slice(1),
+  ].filter(Boolean);
 
   return (
     <div className="bg-gray-900 text-gray-300 border-t border-gray-700">
