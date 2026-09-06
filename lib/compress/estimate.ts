@@ -10,6 +10,7 @@
  * readable duration). Callers must render nothing rather than guess.
  */
 
+import { PLATFORM_BY_SLUG } from '@/config/platforms';
 import { QUICK_PRESETS, type CompressSettings } from '@/lib/freeconvert/presets';
 
 const MB = 1024 * 1024;
@@ -25,15 +26,25 @@ export interface EstimateInput {
 /**
  * Common upload ceilings, in MB. These are the reason most people land on a
  * video compressor at all, so they get one tap instead of a prose hint.
+ *
+ * The numbers come from config/platforms.ts, which is also what the
+ * /compress-video-for-* pages render. They used to be hardcoded here and had
+ * already gone stale: Discord raised its free cap from 10 MB to 20 MB in August
+ * 2026, and the 25 MB "email limit" was never usable in the first place,
+ * because Gmail measures the base64-encoded attachment.
  */
-export const PLATFORM_TARGETS = [
-  { key: 'discord', mb: 10 },
-  { key: 'whatsapp', mb: 16 },
-  { key: 'email', mb: 25 },
-  { key: 'reddit', mb: 100 },
-] as const;
+export type PlatformTargetKey = 'discord' | 'whatsapp' | 'email' | 'reddit';
 
-export type PlatformTargetKey = (typeof PLATFORM_TARGETS)[number]['key'];
+export const PLATFORM_TARGETS: readonly {
+  key: PlatformTargetKey;
+  mb: number;
+}[] = [
+  { key: 'discord', mb: PLATFORM_BY_SLUG.discord.recommendedTargetMb },
+  { key: 'whatsapp', mb: PLATFORM_BY_SLUG.whatsapp.recommendedTargetMb },
+  { key: 'email', mb: PLATFORM_BY_SLUG.email.recommendedTargetMb },
+  // No landing page for Reddit yet, so it keeps its literal.
+  { key: 'reddit', mb: 100 },
+];
 
 /**
  * CRF moves bitrate by roughly a factor of two every six points. We anchor the

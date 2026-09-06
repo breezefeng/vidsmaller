@@ -61,7 +61,7 @@
     },
     "targetSize": {
       "label": "Target file size (MB)",
-      "hint": "Handy for Discord (10 MB), email (25 MB) or WhatsApp (16 MB) limits."
+      "hint": "Handy for Discord (20 MB), email (18 MB) or WhatsApp (16 MB) limits."
     },
     "quality": {
       "label": "Constant quality (CRF)",
